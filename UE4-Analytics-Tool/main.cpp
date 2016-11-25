@@ -69,20 +69,30 @@ bool done = false;
 // tag::vertexData[]
 //the data about our geometry
 const GLfloat vertexData[] = {
-	//	 X        Y            Z          R     G     B      A
+//	  X        Y        Z          R     G     B      A
 	0.000f,  0.500f,  0.000f,    1.0f, 0.0f, 0.0f,  1.0f,
-	-0.433f, -0.250f,  0.000f,    0.0f, 1.0f, 0.0f,  1.0f,
+   -0.433f, -0.250f,  0.000f,    0.0f, 1.0f, 0.0f,  1.0f,
 	0.433f, -0.250f,  0.000f,    0.0f, 0.0f, 1.0f,  1.0f
 };
 // end::vertexData[]
 
+//Attributes...
+
+
+
 // tag::gameState[]
 //the translation vector we'll pass to our GLSL program
-glm::vec3 position1 = { -0.5f, -0.5f, 0.0f };
-glm::vec3 velocity1 = { 0.1f, 0.1f, 0.0f };
+glm::vec3 position1 = { 0.5f, 0.0f, 0.0f };
+glm::vec3 position2 = {-0.5f, 0.0f, 0.0f };
 
-glm::vec3 position2 = { 0.8f, -0.5f , 0.0f };
-glm::vec3 velocity2 = { -0.2f, 0.15f, 0.0f };
+//Camera Start values
+//Location of the camera
+glm::vec3 Cam1 = { 0.0f, 0.0f, 3.0f };
+//What the camera is looking at
+glm::vec3 Cam2 = { 0.0f, 0.0f, 0.0f };
+//Rotation of the camera
+glm::vec3 Cam3 = { 0.0f, 0.000001f, 0.0f };
+
 // end::gameState[]
 
 // tag::GLVariables[]
@@ -93,20 +103,27 @@ GLuint theProgram; //GLuint that we'll fill in to refer to the GLSL program (onl
 				   //attribute locations
 GLint positionLocation; //GLuint that we'll fill in with the location of the `position` attribute in the GLSL
 GLint vertexColorLocation; //GLuint that we'll fill in with the location of the `vertexColor` attribute in the GLSL
+GLint textureLocation;
+GLint colorLocation;
 
-						   //uniform location
+//uniform location
 GLint modelMatrixLocation;
 GLint viewMatrixLocation;
 GLint projectionMatrixLocation;
 
 GLuint vertexDataBufferObject;
 GLuint vertexArrayObject;
+
+glm::mat4 viewMatrix;
+glm::mat4 projectionMatrix;
+glm::mat4 modelMatrix;
+
+GLuint texture;
 // end::GLVariables[]
-
-
 
 // end Global Variables
 /////////////////////////
+
 
 // tag::initialise[]
 void initialise()
@@ -130,7 +147,7 @@ void createWindow()
 	const char *exeNameCStr = exeNameEnd.c_str();
 
 	//create window
-	win = SDL_CreateWindow(exeNameCStr, 100, 100, 600, 600, SDL_WINDOW_OPENGL); //same height and width makes the window square ...
+	win = SDL_CreateWindow(exeNameCStr, 100, 100, 900, 800, SDL_WINDOW_OPENGL); //same height and width makes the window square ...
 
 																				//error handling
 	if (win == nullptr)
@@ -349,6 +366,8 @@ void loadAssets()
 }
 // end::loadAssets[]
 
+bool W, A, S, D, Q, E, UP, DOWN, R, F, Eight, Two, Six, Four = false;
+
 // tag::handleInput[]
 void handleInput()
 {
@@ -385,7 +404,118 @@ void handleInput()
 				{
 					//hit escape to exit
 				case SDLK_ESCAPE: done = true;
-				}
+
+				//Camera Controls
+				//Back to default
+				case SDLK_SPACE:
+					Cam1 = { 0.0f, 0.0f, 3.0f };
+					Cam2 = { 0.0f, 0.0f, 0.0f };
+					Cam3 = { 0.0f, 0.000001f, 0.0f };
+					break;
+				case SDLK_1:
+					Cam1 = { 3.5f, 0.0f, 0.5f };
+					Cam2 = { 0.0f, 0.0f, 0.0f };
+					Cam3 = { 90.0f, 1.0f, 0.0f };
+					break;
+				case SDLK_2:
+					Cam1 = { 0.0f, 0.0f, 3.0f };
+					Cam2 = { 0.0f, 0.0f, 0.0f };
+					Cam3 = { 0.0f, 0.000001f, 0.0f };
+					break;
+
+
+					//Decrease X axis
+				case SDLK_a:
+					A = true;
+					break;
+					//Increase X axis
+				case SDLK_d:
+					D = true;
+					break;
+					//Decrease Y axis
+				case SDLK_e:
+					E = true;
+					break;
+					//Increase Y axis
+				case SDLK_q:
+					Q = true;
+					break;
+
+					//Decrease Z axis
+				case SDLK_w:
+					W = true;
+					break;
+					//Increase Z axis
+				case SDLK_s:
+					S = true;
+					break;
+
+				case SDLK_KP_8:
+					Eight = true;
+					break;
+				case SDLK_KP_6:
+					Six = true;
+					break;
+				case SDLK_KP_4:
+					Four = true;
+					break;
+				case SDLK_KP_2:
+					Two = true;
+					break;
+				}	
+			break;
+		case SDL_KEYUP:
+			switch (event.key.keysym.sym)
+			{
+			case SDLK_r:
+				R = false;
+				break;
+			case SDLK_f:
+				F = false;
+				break;
+			case SDLK_UP:
+				UP = false;
+				break;
+			case SDLK_DOWN:
+				DOWN = false;
+				break;
+
+			case SDLK_w:
+				W = false;
+				break;
+			case SDLK_s:
+				S = false;
+				break;
+			case SDLK_a:
+				A = false;
+				break;
+			case SDLK_d:
+				D = false;
+				break;
+			case SDLK_q:
+				Q = false;
+				break;
+			case SDLK_e:
+				E = false;
+				break;
+
+			case SDLK_KP_8:
+				Eight = false;
+				break;
+			case SDLK_KP_6:
+				Six = false;
+				break;
+			case SDLK_KP_4:
+				Four = false;
+				break;
+			case SDLK_KP_2:
+				Two = false;
+				break;
+			}
+			break;
+
+
+		default: //good practice to always have a default case
 			break;
 		}
 	}
@@ -397,17 +527,34 @@ void updateSimulation(double simLength = 0.02) //update simulation with an amoun
 {
 	//WARNING - we should calculate an appropriate amount of time to simulate - not always use a constant amount of time
 	// see, for example, http://headerphile.blogspot.co.uk/2014/07/part-9-no-more-delays.html
-
-	position1 += float(simLength) * velocity1;
-	position2 += float(simLength) * velocity2;
-
+	//Moving camera
+	if (W == true)
+		Cam1[2] -= 0.05;
+	if (S == true)
+		Cam1[2] += 0.05;
+	if (A == true)
+		Cam1[0] -= 0.05;
+	if (D == true)
+		Cam1[0] += 0.05;
+	if (Q == true)
+		Cam1[1] -= 0.05;
+	if (E == true)
+		Cam1[1] += 0.05;
+	if (Eight == true && Cam2[1] < 1)
+		Cam2[1] += 0.05;
+	if (Two == true && Cam2[1] > -1)
+		Cam2[1] -= 0.05;
+	if (Four == true && Cam2[0] > -1)
+		Cam2[0] -= 0.05;
+	if (Six == true && Cam2[0] < 1)
+		Cam2[0] += 0.05;
 }
 // end::updateSimulation[]
 
 // tag::preRender[]
 void preRender()
 {
-	glViewport(0, 0, 600, 600); //set viewpoint
+	glViewport(0, 0, 900, 800); //set viewpoint
 	glClearColor(1.0f, 0.0f, 0.0f, 1.0f); //set clear colour
 	glClear(GL_COLOR_BUFFER_BIT); //clear the window (technical the scissor box bounds)
 }
@@ -417,15 +564,25 @@ void preRender()
 void render()
 {
 	glUseProgram(theProgram); //installs the program object specified by program as part of current rendering state
-
 	glBindVertexArray(vertexArrayObject);
 
-	//set projectionMatrix - how we go from 3D to 2D
-	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
-
+	//set projectionMatrix - how we go from 2D to 3D.............................................
+	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(projectionMatrix));
 	//set viewMatrix - how we control the view (viewpoint, view direction, etc)
-	glUniformMatrix4fv(viewMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0f)));
+	glUniformMatrix4fv(viewMatrixLocation, 1, false, glm::value_ptr(viewMatrix));
 
+	//Depth testing
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Do 3d Drawing
+
+	////set projectionMatrix - how we go from 3D to 2D
+	//glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
+	////set viewMatrix - how we control the view (viewpoint, view direction, etc)
+	//glUniformMatrix4fv(viewMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0f)));
+
+	//Do 2D Drawing
 
 	//set modelMatrix and draw for triangle 1
 	glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position1);
@@ -437,7 +594,8 @@ void render()
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-	glBindVertexArray(0);
+
+	glBindVertexArray(0);//unbind the vertex data to be neat
 
 	glUseProgram(0); //clean up
 }
@@ -462,6 +620,21 @@ void cleanUp()
 }
 // end::cleanUp[]
 
+void camera()
+{
+	viewMatrix = glm::lookAt(Cam1, Cam2, Cam3);
+
+	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	projectionMatrix = glm::perspective(glm::radians(45.0f), 900.0f / 800.0f, 0.1f, 30.0f);
+	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+}
+
+void Texturing()
+{
+
+}
+
 // tag::main[]
 int main(int argc, char* args[])
 {
@@ -475,11 +648,14 @@ int main(int argc, char* args[])
 
 	initGlew();
 
-	glViewport(0, 0, 600, 600); //should check what the actual window res is?
+	glViewport(0, 0, 900, 800); //should check what the actual window res is?
+	
+	SDL_GL_SwapWindow(win); //force a swap, to make the trace clearer
 
-								//do stuff that only needs to happen once
-								//- create shaders
-								//- load vertex data
+	Texturing();//call this to load in the textures using SDL2					
+
+	//Load Vertex Data
+
 	loadAssets();
 
 	while (!done) //loop until done flag is set)
@@ -489,6 +665,9 @@ int main(int argc, char* args[])
 		updateSimulation(); // this should ONLY SET VARIABLES according to simulation
 
 		preRender();
+
+		//Setup camera
+		camera();
 
 		render(); // this should render the world state according to VARIABLES -
 
