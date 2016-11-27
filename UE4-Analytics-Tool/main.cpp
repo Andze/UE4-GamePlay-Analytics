@@ -14,6 +14,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <sstream>
 #include <cassert>
 
 #include <GL/glew.h>
@@ -63,6 +64,32 @@ std::string loadShader(const string filePath) {
 }
 // end::loadShader[]
 
+std::string loadLog(const string filePath)
+{
+	/*std::ifstream stream1(filePath);
+	string line;
+	while (std::getline(stream1, line))
+	{
+		
+	}*/
+
+	//Load File
+	std::ifstream fileStream(filePath, std::ios::in | std::ios::binary);
+	if (fileStream)
+	{
+		//Save to a single string
+		string fileData((std::istreambuf_iterator<char>(fileStream)),(std::istreambuf_iterator<char>()));
+
+		cout << "LOG Loaded from " << filePath << endl;
+		return fileData;
+	}
+	else
+	{
+		cerr << "LOG could not be loaded - cannot read file " << filePath << ". File does not exist." << endl;
+		return "";
+	}
+}
+
 //our variables
 bool done = false;
 
@@ -84,6 +111,7 @@ const GLfloat vertexData[] = {
 //the translation vector we'll pass to our GLSL program
 glm::vec3 position1 = { 0.5f, 0.0f, 0.0f };
 glm::vec3 position2 = {-0.5f, 0.0f, 0.0f };
+glm::vec3 Centre =    { 0.0f, 0.0f, 0.0f };
 
 //Camera Start values
 //Location of the camera
@@ -412,18 +440,6 @@ void handleInput()
 					Cam2 = { 0.0f, 0.0f, 0.0f };
 					Cam3 = { 0.0f, 0.000001f, 0.0f };
 					break;
-				case SDLK_1:
-					Cam1 = { 3.5f, 0.0f, 0.5f };
-					Cam2 = { 0.0f, 0.0f, 0.0f };
-					Cam3 = { 90.0f, 1.0f, 0.0f };
-					break;
-				case SDLK_2:
-					Cam1 = { 0.0f, 0.0f, 3.0f };
-					Cam2 = { 0.0f, 0.0f, 0.0f };
-					Cam3 = { 0.0f, 0.000001f, 0.0f };
-					break;
-
-
 					//Decrease X axis
 				case SDLK_a:
 					A = true;
@@ -467,19 +483,6 @@ void handleInput()
 		case SDL_KEYUP:
 			switch (event.key.keysym.sym)
 			{
-			case SDLK_r:
-				R = false;
-				break;
-			case SDLK_f:
-				F = false;
-				break;
-			case SDLK_UP:
-				UP = false;
-				break;
-			case SDLK_DOWN:
-				DOWN = false;
-				break;
-
 			case SDLK_w:
 				W = false;
 				break;
@@ -498,7 +501,6 @@ void handleInput()
 			case SDLK_e:
 				E = false;
 				break;
-
 			case SDLK_KP_8:
 				Eight = false;
 				break;
@@ -635,6 +637,15 @@ void Texturing()
 
 }
 
+void loadDataLog()
+{
+	std::string LOG = loadLog("../LOG.txt");
+	//Loading Text file and saving to a string "LOG"
+	
+	//Print whole LOG
+	//cout << LOG << endl;
+}
+
 // tag::main[]
 int main(int argc, char* args[])
 {
@@ -655,6 +666,9 @@ int main(int argc, char* args[])
 	Texturing();//call this to load in the textures using SDL2					
 
 	//Load Vertex Data
+
+	//Load Logs
+	loadDataLog();
 
 	loadAssets();
 
