@@ -66,13 +66,8 @@ std::string loadShader(const string filePath) {
 
 std::string loadLog(const string filePath)
 {
-	/*std::ifstream stream1(filePath);
-	string line;
-	while (std::getline(stream1, line))
-	{
-		
-	}*/
-
+	//while (std::getline(stream1, line))
+	
 	//Load File
 	std::ifstream fileStream(filePath, std::ios::in | std::ios::binary);
 	if (fileStream)
@@ -104,7 +99,6 @@ const GLfloat vertexData[] = {
 // end::vertexData[]
 
 //Attributes...
-
 
 
 // tag::gameState[]
@@ -578,6 +572,9 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Do 3d Drawing
+	//---------------------------------
+
+	//---------------------------------
 
 	////set projectionMatrix - how we go from 3D to 2D
 	//glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
