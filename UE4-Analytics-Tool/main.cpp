@@ -66,16 +66,45 @@ std::string loadShader(const string filePath) {
 
 std::string loadLog(const string filePath)
 {
-	//while (std::getline(stream1, line))
-	
 	//Load File
 	std::ifstream fileStream(filePath, std::ios::in | std::ios::binary);
 	if (fileStream)
 	{
+		//Create Array for Log
+		std::vector<std::string> wordVector;
+
+		//parse Log
+		std::string line;
+		while (std::getline(fileStream, line))
+		{
+			std::size_t prev = 0, pos;
+			while ((pos = line.find_first_of("X=Y=Z=; ", prev)) != std::string::npos)
+			{
+				if (pos > prev)
+					wordVector.push_back(line.substr(prev, pos - prev));
+				prev = pos + 1;
+			}
+			if (prev < line.length())
+				wordVector.push_back(line.substr(prev, std::string::npos));
+		}
+
+
 		//Save to a single string
 		string fileData((std::istreambuf_iterator<char>(fileStream)),(std::istreambuf_iterator<char>()));
 
 		cout << "LOG Loaded from " << filePath << endl;
+
+		cout << wordVector[0] << "\n";
+		cout << wordVector[1] << "\n";
+		cout << wordVector[2] << "\n";
+		cout << wordVector[3] << "\n";
+
+		/*for (int i = 0; i < 500; i++)
+		{
+			
+			cout << wordVector[i] << "\n";
+		}*/
+		
 		return fileData;
 	}
 	else
@@ -83,6 +112,30 @@ std::string loadLog(const string filePath)
 		cerr << "LOG could not be loaded - cannot read file " << filePath << ". File does not exist." << endl;
 		return "";
 	}
+}
+
+void parseLog(string fileData)
+{
+	//create array from title
+
+	std::string s = fileData;
+	std::string delimiter = "X=";
+
+	size_t pos = 0;
+	std::string token;
+	while ((pos = s.find(delimiter)) != std::string::npos) {
+		token = s.substr(0, pos);
+		std::cout << token << std::endl;
+		s.erase(0, pos + delimiter.length());
+	}
+
+	std::cout << s << std::endl;
+
+	//read from the : if has X
+
+	//else int
+
+	//save data to array
 }
 
 //our variables
@@ -636,9 +689,10 @@ void Texturing()
 
 void loadDataLog()
 {
-	std::string LOG = loadLog("../LOG.txt");
+	std::string LOG = loadLog("../Logs/Gameplay-2016.12.09-14.36.22/Player Position - 2016.12.09-14.36.22.txt");
 	//Loading Text file and saving to a string "LOG"
 	
+	//parseLog(LOG);
 	//Print whole LOG
 	//cout << LOG << endl;
 }
