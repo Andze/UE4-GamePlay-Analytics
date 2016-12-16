@@ -102,12 +102,12 @@ std::string loadLog(const string filePath)
 		cout << wordVector[2] << "\n";
 		cout << wordVector[3] << "\n";
 
-		/*for (int i = 0; i < 500; i++)
+	/*	for (int i = 0; i < 500; i++)
 		{
 			
 			cout << wordVector[i] << "\n";
 		}*/
-		
+
 		return fileData;
 	}
 	else
