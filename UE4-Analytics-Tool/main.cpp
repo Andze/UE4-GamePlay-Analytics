@@ -81,7 +81,10 @@ std::string loadLog(const string filePath)
 			while ((pos = line.find_first_of("X=Y=Z=; ", prev)) != std::string::npos)
 			{
 				if (pos > prev)
+				{
+					/*auto ss = line.substr(prev, pos - prev);*/
 					wordVector.push_back(line.substr(prev, pos - prev));
+				}
 				prev = pos + 1;
 			}
 			if (prev < line.length())
@@ -689,7 +692,7 @@ void Texturing()
 
 void loadDataLog()
 {
-	std::string LOG = loadLog("../Logs/Gameplay-2016.12.09-14.36.22/Player Position - 2016.12.09-14.36.22.txt");
+	std::string LOG = loadLog("../Logs/Gameplay-2016.12.16-14.19.48/Player Position - 2016.12.16-14.19.48.txt");
 	//Loading Text file and saving to a string "LOG"
 	
 	//parseLog(LOG);
