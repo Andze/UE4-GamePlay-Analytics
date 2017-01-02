@@ -115,11 +115,13 @@ std::vector<GLfloat> loadLog(const string filePath)
 		return LogData;
 	}
 }
+
 std::vector<GLfloat> MYLOG;
+
 void loadDataLog()
 {
 	//Creating array of log data from file
-	MYLOG = loadLog("../Logs/Gameplay-2017.01.02-02.11.59/Player Position - 2017.01.02-02.11.59.txt");
+	MYLOG = loadLog("../Logs/Gameplay-2017.01.02-02.11.59/Player Power - 2017.01.02-02.11.59.txt");
 
 	cout << MYLOG[0] << "\n";
 	cout << MYLOG[1] << "\n";
@@ -182,7 +184,6 @@ glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
 glm::mat4 modelMatrix;
 
-GLuint texture;
 // end::GLVariables[]
 
 // end Global Variables
@@ -425,13 +426,21 @@ void loadAssets()
 {
 	initializeProgram(); //create GLSL Shaders, link into a GLSL program, and get IDs of attributes and variables
 
-	initializeVertexBuffer(); //load data into a vertex buffer
-
 	cout << "Loaded Assets OK!\n";
 }
 // end::loadAssets[]
 
 bool W, A, S, D, Q, E, UP, DOWN, R, F, Eight, Two, Six, Four = false;
+
+string getFileExt(const string& s) {
+
+	size_t i = s.rfind('.', s.length());
+	if (i != string::npos) {
+		return(s.substr(i + 1, s.length() - i));
+	}
+
+	return("");
+}
 
 // tag::handleInput[]
 void handleInput()
@@ -461,12 +470,41 @@ void handleInput()
 
 		case (SDL_DROPFILE) : {      // In case if dropped file
 			dropped_filedir = event.drop.file;
-
-			// Shows directory of dropped file
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"File dropped on window",dropped_filedir,win);
+			//string of file name
 			std::string file(dropped_filedir);
-			//create varibale to store it in dynamically
-			MYLOG = loadLog(file);
+			//check of file extenstion
+			string exstension = getFileExt(dropped_filedir);
+			string pos = "Position";
+			//if file type text
+			if (exstension == "txt")
+			{
+				// Shows directory of dropped file
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"Suitable Text dropped on window",dropped_filedir,win);
+
+				if (file.find(pos) != std::string::npos)
+				{
+					MYLOG = loadLog(file);
+				}
+
+
+
+				//check file title for Player Position
+			/*	if (dropped_filedir contains player position && dropped player files = 0)
+				{
+					dropped files++
+				}*/
+
+				//create varibale to store it in dynamically
+				
+				//MYLOG = loadLog(file);
+
+				initializeVertexBuffer(); //load data into a vertex buffer
+			}
+			else
+			{
+				// Shows directory of dropped file
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Un-suitable file type dropped on window", dropped_filedir, win);
+			}
 			SDL_free(dropped_filedir);    // Free dropped_filedir memory
 			break;
 		}
@@ -608,7 +646,7 @@ void updateSimulation(double simLength = 0.02) //update simulation with an amoun
 void preRender()
 {
 	glViewport(0, 0, 900, 800); //set viewpoint
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //set clear colour
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //set bg colour
 	glClear(GL_COLOR_BUFFER_BIT); //clear the window (technical the scissor box bounds)
 }
 // end::preRender[]
@@ -630,9 +668,10 @@ void render()
 
 	//Do 3d Drawing
 	//-------------------------------
-	modelMatrix = glm::translate(glm::mat4(1.0f), Centre);
+	
+	
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINES, 0, MYLOG.size());
+	glDrawArrays(GL_LINE_STRIP, 0, MYLOG.size());
 
 
 	//set projectionMatrix - how we go from 3D to 2D
@@ -678,11 +717,6 @@ void camera()
 
 }
 
-void Texturing()
-{
-
-}
-
 // tag::main[]
 int main(int argc, char* args[])
 {
@@ -699,13 +733,6 @@ int main(int argc, char* args[])
 	glViewport(0, 0, 900, 800); //should check what the actual window res is?
 	
 	SDL_GL_SwapWindow(win); //force a swap, to make the trace clearer
-
-	Texturing();//call this to load in the textures using SDL2					
-
-	//Load Vertex Data
-
-	//Load Logs
-	loadDataLog();
 
 	loadAssets();
 
