@@ -113,29 +113,16 @@ std::vector<float> loadLog(const string filePath)
 		return LogData;
 	}
 }
-
-void parseLog(string fileData)
+std::vector<GLfloat> MYLOG;
+void loadDataLog()
 {
-	//create array from title
+	//Creating array of log data from file
+	MYLOG = loadLog("../Logs/Gameplay-2017.01.02-02.11.59/Player Position - 2017.01.02-02.11.59.txt");
 
-	std::string s = fileData;
-	std::string delimiter = "X=";
-
-	size_t pos = 0;
-	std::string token;
-	while ((pos = s.find(delimiter)) != std::string::npos) {
-		token = s.substr(0, pos);
-		std::cout << token << std::endl;
-		s.erase(0, pos + delimiter.length());
-	}
-
-	std::cout << s << std::endl;
-
-	//read from the : if has X
-
-	//else int
-
-	//save data to array
+	cout << MYLOG[0] << "\n";
+	cout << MYLOG[1] << "\n";
+	cout << MYLOG[2] << "\n";
+	
 }
 
 //our variables
@@ -144,10 +131,10 @@ bool done = false;
 // tag::vertexData[]
 //the data about our geometry
 const GLfloat vertexData[] = {
-//	  X        Y        Z          R     G     B      A
-	0.000f,  0.500f,  0.000f,    1.0f, 0.0f, 0.0f,  1.0f,
-   -0.433f, -0.250f,  0.000f,    0.0f, 1.0f, 0.0f,  1.0f,
-	0.433f, -0.250f,  0.000f,    0.0f, 0.0f, 1.0f,  1.0f
+//	  X        Y        Z          
+	0.000f,  0.000f,  -1.350f,
+    6.000f,  3.000f,   -1.350f,
+	51.888f,  37.000f,  -1.350f,
 };
 // end::vertexData[]
 
@@ -400,12 +387,12 @@ void initializeVertexArrayObject()
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject); //bind vertexDataBufferObject
 
 	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
-	glEnableVertexAttribArray(vertexColorLocation); //enable attribute at index vertexColorLocation
+	//glEnableVertexAttribArray(vertexColorLocation); //enable attribute at index vertexColorLocation
 
-													// tag::glVertexAttribPointer[]
-	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, (7 * sizeof(GL_FLOAT)), (GLvoid *)(0 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
-	glVertexAttribPointer(vertexColorLocation, 4, GL_FLOAT, GL_FALSE, (7 * sizeof(GL_FLOAT)), (GLvoid *)(3 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index vertexColorLocation
-																																// end::glVertexAttribPointer[]
+	// tag::glVertexAttribPointer[]
+	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0); //(4 * sizeof(GL_FLOAT)), (GLvoid *)(0 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
+	//glVertexAttribPointer(vertexColorLocation, 4, GL_FLOAT, GL_FALSE, (7 * sizeof(GL_FLOAT)), (GLvoid *)(3 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index vertexColorLocation
+	// end::glVertexAttribPointer[]
 
 	glBindVertexArray(0); //unbind the vertexArrayObject so we can't change it
 
@@ -422,6 +409,7 @@ void initializeVertexBuffer()
 	glGenBuffers(1, &vertexDataBufferObject);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject);
+	//glBufferData(GL_ARRAY_BUFFER, MYLOG.size() *sizeof(GLfloat), &MYLOG[0], GL_STATIC_DRAW);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	cout << "vertexDataBufferObject created OK! GLUint is: " << vertexDataBufferObject << std::endl;
@@ -625,27 +613,19 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Do 3d Drawing
-	//---------------------------------
+	//-------------------------------
+	modelMatrix = glm::translate(glm::mat4(1.0f), Centre);
+	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+	glDrawArrays(GL_LINE_STRIP, 0, MYLOG.size());
 
-	//---------------------------------
 
-	////set projectionMatrix - how we go from 3D to 2D
-	//glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
-	////set viewMatrix - how we control the view (viewpoint, view direction, etc)
-	//glUniformMatrix4fv(viewMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0f)));
+	//set projectionMatrix - how we go from 3D to 2D
+	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
+	//set viewMatrix - how we control the view (viewpoint, view direction, etc)
+	glUniformMatrix4fv(viewMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0f)));
 
 	//Do 2D Drawing
-
-	//set modelMatrix and draw for triangle 1
-	glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position1);
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	//set modelMatrix and draw for triangle 2
-	modelMatrix = glm::translate(glm::mat4(1.0f), position2);
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
+	//---------------------------------------------
 
 	glBindVertexArray(0);//unbind the vertex data to be neat
 
@@ -685,16 +665,6 @@ void camera()
 void Texturing()
 {
 
-}
-
-void loadDataLog()
-{
-	std::vector<float> LOG = loadLog("../Logs/Gameplay-2016.12.16-14.19.48/Player Position - 2016.12.16-14.19.48.txt");
-	//Loading Text file and saving to a string "LOG"
-	
-	//parseLog(LOG);
-	//Print whole LOG
-	//cout << LOG << endl;
 }
 
 // tag::main[]
