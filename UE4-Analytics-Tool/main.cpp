@@ -64,56 +64,53 @@ std::string loadShader(const string filePath) {
 }
 // end::loadShader[]
 
-std::string loadLog(const string filePath)
+//Function to return all the data in a log file in the form of a float array
+std::vector<float> loadLog(const string filePath)
 {
+	//Create Array for Log
+	std::vector<float> LogData;
+
 	//Load File
 	std::ifstream fileStream(filePath, std::ios::in | std::ios::binary);
 	if (fileStream)
 	{
-		//Create Array for Log
-		std::vector<std::string> wordVector;
-
 		//parse Log
 		std::string line;
 		while (std::getline(fileStream, line))
-		{
+		{ 
 			std::size_t prev = 0, pos;
+			//Parse out info not needed
 			while ((pos = line.find_first_of("X=Y=Z=; ", prev)) != std::string::npos)
 			{
 				if (pos > prev)
 				{
-					/*auto ss = line.substr(prev, pos - prev);*/
-					wordVector.push_back(line.substr(prev, pos - prev));
+					//convert string data into float using stof
+					float temp = std::stof(line.substr(prev, pos - prev));
+					//add data to array
+					LogData.push_back(temp);				
 				}
 				prev = pos + 1;
 			}
+			//stop loop when reaching the end
 			if (prev < line.length())
-				wordVector.push_back(line.substr(prev, std::string::npos));
+			{
+				break;
+			}
 		}
-
-
-		//Save to a single string
-		string fileData((std::istreambuf_iterator<char>(fileStream)),(std::istreambuf_iterator<char>()));
 
 		cout << "LOG Loaded from " << filePath << endl;
 
-		cout << wordVector[0] << "\n";
-		cout << wordVector[1] << "\n";
-		cout << wordVector[2] << "\n";
-		cout << wordVector[3] << "\n";
+		//Save to a single string
+		/*string fileData((std::istreambuf_iterator<char>(fileStream)),(std::istreambuf_iterator<char>()));*/
 
-	/*	for (int i = 0; i < 500; i++)
-		{
-			
-			cout << wordVector[i] << "\n";
-		}*/
-
-		return fileData;
+		//return data
+		return LogData;
 	}
+
 	else
 	{
 		cerr << "LOG could not be loaded - cannot read file " << filePath << ". File does not exist." << endl;
-		return "";
+		return LogData;
 	}
 }
 
@@ -692,7 +689,7 @@ void Texturing()
 
 void loadDataLog()
 {
-	std::string LOG = loadLog("../Logs/Gameplay-2016.12.16-14.19.48/Player Position - 2016.12.16-14.19.48.txt");
+	std::vector<float> LOG = loadLog("../Logs/Gameplay-2016.12.16-14.19.48/Player Position - 2016.12.16-14.19.48.txt");
 	//Loading Text file and saving to a string "LOG"
 	
 	//parseLog(LOG);
