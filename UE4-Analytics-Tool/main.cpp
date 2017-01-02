@@ -86,6 +86,7 @@ std::vector<GLfloat> loadLog(const string filePath)
 				{
 					//convert string data into float using stof
 					float temp = std::stof(line.substr(prev, pos - prev));
+					//scale down for window size
 					temp /= 1000;
 					//add data to array
 					LogData.push_back(temp);				
@@ -446,7 +447,8 @@ void handleInput()
 	//  - the alternative is to Poll the current state with SDL_GetKeyboardState
 
 	SDL_Event event; //somewhere to store an event
-
+	char* dropped_filedir;
+	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 					 //NOTE: there may be multiple events per frame
 	while (SDL_PollEvent(&event)) //loop until SDL_PollEvent returns 0 (meaning no more events)
 	{
@@ -456,6 +458,19 @@ void handleInput()
 			done = true; //set donecreate remote branch flag if SDL wants to quit (i.e. if the OS has triggered a close event,
 						 //  - such as window close, or SIGINT
 			break;
+
+		case (SDL_DROPFILE) : {      // In case if dropped file
+			dropped_filedir = event.drop.file;
+
+			// Shows directory of dropped file
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"File dropped on window",dropped_filedir,win);
+			std::string file(dropped_filedir);
+			//create varibale to store it in dynamically
+			MYLOG = loadLog(file);
+			SDL_free(dropped_filedir);    // Free dropped_filedir memory
+			break;
+		}
+
 
 			//keydown handling - we should to the opposite on key-up for direction controls (generally)
 		case SDL_KEYDOWN:
@@ -617,7 +632,7 @@ void render()
 	//-------------------------------
 	modelMatrix = glm::translate(glm::mat4(1.0f), Centre);
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, MYLOG.size());
+	glDrawArrays(GL_LINES, 0, MYLOG.size());
 
 
 	//set projectionMatrix - how we go from 3D to 2D
