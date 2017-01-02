@@ -65,10 +65,10 @@ std::string loadShader(const string filePath) {
 // end::loadShader[]
 
 //Function to return all the data in a log file in the form of a float array
-std::vector<float> loadLog(const string filePath)
+std::vector<GLfloat> loadLog(const string filePath)
 {
 	//Create Array for Log
-	std::vector<float> LogData;
+	std::vector<GLfloat> LogData;
 
 	//Load File
 	std::ifstream fileStream(filePath, std::ios::in | std::ios::binary);
@@ -86,6 +86,7 @@ std::vector<float> loadLog(const string filePath)
 				{
 					//convert string data into float using stof
 					float temp = std::stof(line.substr(prev, pos - prev));
+					temp /= 1000;
 					//add data to array
 					LogData.push_back(temp);				
 				}
@@ -133,8 +134,8 @@ bool done = false;
 const GLfloat vertexData[] = {
 //	  X        Y        Z          
 	0.000f,  0.000f,  -1.350f,
-    6.000f,  3.000f,   -1.350f,
-	51.888f,  37.000f,  -1.350f,
+    0.100f,  0.100f,   -1.350f,
+	0.200f,  0.200f,  -1.350f,
 };
 // end::vertexData[]
 
@@ -149,7 +150,7 @@ glm::vec3 Centre =    { 0.0f, 0.0f, 0.0f };
 
 //Camera Start values
 //Location of the camera
-glm::vec3 Cam1 = { 0.0f, 0.0f, 3.0f };
+glm::vec3 Cam1 = { 0.0f, 0.0f, 5.0f };
 //What the camera is looking at
 glm::vec3 Cam2 = { 0.0f, 0.0f, 0.0f };
 //Rotation of the camera
@@ -409,8 +410,8 @@ void initializeVertexBuffer()
 	glGenBuffers(1, &vertexDataBufferObject);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject);
-	//glBufferData(GL_ARRAY_BUFFER, MYLOG.size() *sizeof(GLfloat), &MYLOG[0], GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, MYLOG.size() *sizeof(GLfloat), &MYLOG[0], GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	cout << "vertexDataBufferObject created OK! GLUint is: " << vertexDataBufferObject << std::endl;
 
@@ -471,7 +472,7 @@ void handleInput()
 				//Camera Controls
 				//Back to default
 				case SDLK_SPACE:
-					Cam1 = { 0.0f, 0.0f, 3.0f };
+					Cam1 = { 0.0f, 0.0f, 5.0f };
 					Cam2 = { 0.0f, 0.0f, 0.0f };
 					Cam3 = { 0.0f, 0.000001f, 0.0f };
 					break;
@@ -592,7 +593,7 @@ void updateSimulation(double simLength = 0.02) //update simulation with an amoun
 void preRender()
 {
 	glViewport(0, 0, 900, 800); //set viewpoint
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f); //set clear colour
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //set clear colour
 	glClear(GL_COLOR_BUFFER_BIT); //clear the window (technical the scissor box bounds)
 }
 // end::preRender[]
@@ -657,7 +658,7 @@ void camera()
 	viewMatrix = glm::lookAt(Cam1, Cam2, Cam3);
 
 	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-	projectionMatrix = glm::perspective(glm::radians(45.0f), 900.0f / 800.0f, 0.1f, 30.0f);
+	projectionMatrix = glm::perspective(glm::radians(45.0f), 900.0f / 800.0f, 0.1f, 150.0f);
 	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 }
