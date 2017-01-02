@@ -116,18 +116,9 @@ std::vector<GLfloat> loadLog(const string filePath)
 	}
 }
 
-std::vector<GLfloat> MYLOG;
+std::vector<GLfloat> PlayerPosition;
 
-void loadDataLog()
-{
-	//Creating array of log data from file
-	MYLOG = loadLog("../Logs/Gameplay-2017.01.02-02.11.59/Player Power - 2017.01.02-02.11.59.txt");
 
-	cout << MYLOG[0] << "\n";
-	cout << MYLOG[1] << "\n";
-	cout << MYLOG[2] << "\n";
-	
-}
 
 //our variables
 bool done = false;
@@ -179,6 +170,7 @@ GLint projectionMatrixLocation;
 
 GLuint vertexDataBufferObject;
 GLuint vertexArrayObject;
+
 
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
@@ -410,10 +402,10 @@ void initializeVertexArrayObject()
 void initializeVertexBuffer()
 {
 	glGenBuffers(1, &vertexDataBufferObject);
-
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, MYLOG.size() *sizeof(GLfloat), &MYLOG[0], GL_STATIC_DRAW);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+	
+	glBufferData(GL_ARRAY_BUFFER, PlayerPosition.size() *sizeof(GLfloat), &PlayerPosition[0], GL_STATIC_DRAW);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	cout << "vertexDataBufferObject created OK! GLUint is: " << vertexDataBufferObject << std::endl;
 
@@ -441,7 +433,7 @@ string getFileExt(const string& s) {
 
 	return("");
 }
-
+int playerFiles;
 // tag::handleInput[]
 void handleInput()
 {
@@ -481,9 +473,35 @@ void handleInput()
 				// Shows directory of dropped file
 				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"Suitable Text dropped on window",dropped_filedir,win);
 
+				//if ((file.find(pos) != std::string::npos) && playerFiles == 0)
 				if (file.find(pos) != std::string::npos)
 				{
-					MYLOG = loadLog(file);
+					switch (playerFiles){
+					case 0:
+						PlayerPosition = loadLog(file);
+						++playerFiles;
+						break;
+					case 1:
+						PlayerPosition = loadLog(file);
+						++playerFiles;
+						break;
+					case 2:
+						PlayerPosition = loadLog(file);
+						++playerFiles;
+						break;
+					case 3:
+						PlayerPosition = loadLog(file);
+						++playerFiles;
+						break;
+					case 4:
+						PlayerPosition = loadLog(file);
+						++playerFiles;
+						break;
+					default:
+						break;
+					}
+					/*MYLOG = loadLog(file);
+					++playerFiles;*/
 				}
 
 
@@ -671,8 +689,7 @@ void render()
 	
 	
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, MYLOG.size());
-
+	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition.size());
 
 	//set projectionMatrix - how we go from 3D to 2D
 	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
