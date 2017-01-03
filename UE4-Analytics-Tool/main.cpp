@@ -116,25 +116,10 @@ std::vector<GLfloat> loadLog(const string filePath)
 	}
 }
 
-std::vector<GLfloat> PlayerPosition;
-
-
+std::vector<GLfloat> PlayerPosition, PlayerPosition1;
 
 //our variables
 bool done = false;
-
-// tag::vertexData[]
-//the data about our geometry
-const GLfloat vertexData[] = {
-//	  X        Y        Z          
-	0.000f,  0.000f,  -1.350f,
-    0.100f,  0.100f,   -1.350f,
-	0.200f,  0.200f,  -1.350f,
-};
-// end::vertexData[]
-
-//Attributes...
-
 
 // tag::gameState[]
 //the translation vector we'll pass to our GLSL program
@@ -157,7 +142,6 @@ glm::vec3 Cam3 = { 0.0f, 0.000001f, 0.0f };
 //programIDs
 GLuint theProgram; //GLuint that we'll fill in to refer to the GLSL program (only have 1 at this point)
 
-				   //attribute locations
 GLint positionLocation; //GLuint that we'll fill in with the location of the `position` attribute in the GLSL
 GLint vertexColorLocation; //GLuint that we'll fill in with the location of the `vertexColor` attribute in the GLSL
 GLint textureLocation;
@@ -169,8 +153,9 @@ GLint viewMatrixLocation;
 GLint projectionMatrixLocation;
 
 GLuint vertexDataBufferObject;
+GLuint vertexDataBufferObject1;
 GLuint vertexArrayObject;
-
+GLuint vertexArrayObject1;
 
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
@@ -376,9 +361,7 @@ void initializeVertexArrayObject()
 {
 	glGenVertexArrays(1, &vertexArrayObject); //create a Vertex Array Object
 	cout << "Vertex Array Object created OK! GLUint is: " << vertexArrayObject << std::endl;
-
 	glBindVertexArray(vertexArrayObject); //make the just created vertexArrayObject the active one
-
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject); //bind vertexDataBufferObject
 
 	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
@@ -390,8 +373,7 @@ void initializeVertexArrayObject()
 	// end::glVertexAttribPointer[]
 
 	glBindVertexArray(0); //unbind the vertexArrayObject so we can't change it
-
-						  //cleanup
+						 
 	glDisableVertexAttribArray(positionLocation); //disable vertex attribute at index positionLocation
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind array buffer
 
@@ -399,16 +381,14 @@ void initializeVertexArrayObject()
 // end::initializeVertexArrayObject[]
 
 // tag::initializeVertexBuffer[]
-void initializeVertexBuffer()
+void initializeVertexBuffer(std::vector<GLfloat> data)
 {
 	glGenBuffers(1, &vertexDataBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject);
-	
-	glBufferData(GL_ARRAY_BUFFER, PlayerPosition.size() *sizeof(GLfloat), &PlayerPosition[0], GL_STATIC_DRAW);
-	
+	glBufferData(GL_ARRAY_BUFFER, data.size() *sizeof(GLfloat), &data[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	cout << "vertexDataBufferObject created OK! GLUint is: " << vertexDataBufferObject << std::endl;
-
+	
 	initializeVertexArrayObject();
 }
 // end::initializeVertexBuffer[]
@@ -430,7 +410,6 @@ string getFileExt(const string& s) {
 	if (i != string::npos) {
 		return(s.substr(i + 1, s.length() - i));
 	}
-
 	return("");
 }
 int playerFiles;
@@ -479,32 +458,33 @@ void handleInput()
 					switch (playerFiles){
 					case 0:
 						PlayerPosition = loadLog(file);
+						initializeVertexBuffer(PlayerPosition); //load data into a vertex buffer
 						++playerFiles;
 						break;
 					case 1:
-						PlayerPosition = loadLog(file);
+						PlayerPosition1 = loadLog(file);
+						initializeVertexBuffer(PlayerPosition1); //load data into a vertex buffer
 						++playerFiles;
 						break;
 					case 2:
 						PlayerPosition = loadLog(file);
+						initializeVertexBuffer(PlayerPosition);
 						++playerFiles;
 						break;
 					case 3:
 						PlayerPosition = loadLog(file);
+						initializeVertexBuffer(PlayerPosition);
 						++playerFiles;
 						break;
 					case 4:
 						PlayerPosition = loadLog(file);
-						++playerFiles;
+						initializeVertexBuffer(PlayerPosition);
+						playerFiles = 0;
 						break;
 					default:
 						break;
 					}
-					/*MYLOG = loadLog(file);
-					++playerFiles;*/
 				}
-
-
 
 				//check file title for Player Position
 			/*	if (dropped_filedir contains player position && dropped player files = 0)
@@ -516,7 +496,7 @@ void handleInput()
 				
 				//MYLOG = loadLog(file);
 
-				initializeVertexBuffer(); //load data into a vertex buffer
+				//initializeVertexBuffer(); //load data into a vertex buffer
 			}
 			else
 			{
@@ -571,6 +551,11 @@ void handleInput()
 					//Increase Z axis
 				case SDLK_s:
 					S = true;
+					break;
+
+
+				case SDLK_1:
+					
 					break;
 
 				case SDLK_KP_8:
@@ -686,10 +671,13 @@ void render()
 
 	//Do 3d Drawing
 	//-------------------------------
-	
-	
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
 	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition.size());
+
+	glBindVertexArray(vertexArrayObject1);
+
+	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition1.size());
 
 	//set projectionMatrix - how we go from 3D to 2D
 	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
