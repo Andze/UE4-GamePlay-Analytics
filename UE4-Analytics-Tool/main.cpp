@@ -116,8 +116,6 @@ std::vector<GLfloat> loadLog(const string filePath)
 	}
 }
 
-std::vector<GLfloat> PlayerPosition, PlayerPosition1;
-
 //our variables
 bool done = false;
 
@@ -152,10 +150,9 @@ GLint modelMatrixLocation;
 GLint viewMatrixLocation;
 GLint projectionMatrixLocation;
 
-GLuint vertexDataBufferObject;
-GLuint vertexDataBufferObject1;
-GLuint vertexArrayObject;
-GLuint vertexArrayObject1;
+GLuint vertexDataBufferObject[5];
+GLuint vertexArrayObject[5];
+std::vector<GLfloat> PlayerPosition[5];
 
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
@@ -357,12 +354,12 @@ void initializeProgram()
 
 // tag::initializeVertexArrayObject[]
 //setup a GL object (a VertexArrayObject) that stores how to access data and from where
-void initializeVertexArrayObject()
+void initializeVertexArrayObject(int index)
 {
-	glGenVertexArrays(1, &vertexArrayObject); //create a Vertex Array Object
+	glGenVertexArrays(1, &vertexArrayObject[index]); //create a Vertex Array Object
 	cout << "Vertex Array Object created OK! GLUint is: " << vertexArrayObject << std::endl;
-	glBindVertexArray(vertexArrayObject); //make the just created vertexArrayObject the active one
-	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject); //bind vertexDataBufferObject
+	glBindVertexArray(vertexArrayObject[index]); //make the just created vertexArrayObject the active one
+	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject[index]); //bind vertexDataBufferObject
 
 	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
 	//glEnableVertexAttribArray(vertexColorLocation); //enable attribute at index vertexColorLocation
@@ -381,15 +378,15 @@ void initializeVertexArrayObject()
 // end::initializeVertexArrayObject[]
 
 // tag::initializeVertexBuffer[]
-void initializeVertexBuffer(std::vector<GLfloat> data)
+void initializeVertexBuffer(int index)
 {
-	glGenBuffers(1, &vertexDataBufferObject);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, data.size() *sizeof(GLfloat), &data[0], GL_STATIC_DRAW);
+	glGenBuffers(1, &vertexDataBufferObject[index]);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject[index]);
+	glBufferData(GL_ARRAY_BUFFER, PlayerPosition[index].size() *sizeof(GLfloat), &PlayerPosition[index][0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	cout << "vertexDataBufferObject created OK! GLUint is: " << vertexDataBufferObject << std::endl;
 	
-	initializeVertexArrayObject();
+	initializeVertexArrayObject(index);
 }
 // end::initializeVertexBuffer[]
 
@@ -457,28 +454,28 @@ void handleInput()
 				{
 					switch (playerFiles){
 					case 0:
-						PlayerPosition = loadLog(file);
-						initializeVertexBuffer(PlayerPosition); //load data into a vertex buffer
+						PlayerPosition[playerFiles] = loadLog(file);
+						initializeVertexBuffer(playerFiles); //load data into a vertex buffer
 						++playerFiles;
 						break;
 					case 1:
-						PlayerPosition1 = loadLog(file);
-						initializeVertexBuffer(PlayerPosition1); //load data into a vertex buffer
+						PlayerPosition[playerFiles] = loadLog(file);
+						initializeVertexBuffer(playerFiles); //load data into a vertex buffer
 						++playerFiles;
 						break;
 					case 2:
-						PlayerPosition = loadLog(file);
-						initializeVertexBuffer(PlayerPosition);
+						PlayerPosition[playerFiles] = loadLog(file);
+						initializeVertexBuffer(playerFiles);
 						++playerFiles;
 						break;
 					case 3:
-						PlayerPosition = loadLog(file);
-						initializeVertexBuffer(PlayerPosition);
+						PlayerPosition[playerFiles] = loadLog(file);
+						initializeVertexBuffer(playerFiles);
 						++playerFiles;
 						break;
 					case 4:
-						PlayerPosition = loadLog(file);
-						initializeVertexBuffer(PlayerPosition);
+						PlayerPosition[playerFiles] = loadLog(file);
+						initializeVertexBuffer(playerFiles);
 						playerFiles = 0;
 						break;
 					default:
@@ -658,7 +655,11 @@ void preRender()
 void render()
 {
 	glUseProgram(theProgram); //installs the program object specified by program as part of current rendering state
-	glBindVertexArray(vertexArrayObject);
+
+	
+	
+
+
 
 	//set projectionMatrix - how we go from 2D to 3D.............................................
 	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(projectionMatrix));
@@ -671,13 +672,26 @@ void render()
 
 	//Do 3d Drawing
 	//-------------------------------
+	glBindVertexArray(vertexArrayObject[0]);
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition.size());
+	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[0].size());
 
-	glBindVertexArray(vertexArrayObject1);
-
+	glBindVertexArray(vertexArrayObject[1]);
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition1.size());
+	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[1].size());
+
+	glBindVertexArray(vertexArrayObject[2]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[2].size());
+
+	glBindVertexArray(vertexArrayObject[3]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[3].size());
+
+	glBindVertexArray(vertexArrayObject[4]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[4].size());
+
 
 	//set projectionMatrix - how we go from 3D to 2D
 	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(glm::mat4(1.0)));
@@ -687,9 +701,9 @@ void render()
 	//Do 2D Drawing
 	//---------------------------------------------
 
-	glBindVertexArray(0);//unbind the vertex data to be neat
+	//glBindVertexArray(0);//unbind the vertex data to be neat
 
-	glUseProgram(0); //clean up
+	glUseProgram(0); //clean  up
 }
 // end::render[]
 
