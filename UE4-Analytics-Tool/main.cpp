@@ -400,7 +400,7 @@ void loadAssets()
 // end::loadAssets[]
 
 bool W, A, S, D, Q, E, UP, DOWN, R, F, Eight, Two, Six, Four = false;
-
+bool Togglefile[5];
 string getFileExt(const string& s) {
 
 	size_t i = s.rfind('.', s.length());
@@ -409,7 +409,8 @@ string getFileExt(const string& s) {
 	}
 	return("");
 }
-int playerFiles;
+int DroppedIndex;
+int filesHeld = 5;
 // tag::handleInput[]
 void handleInput()
 {
@@ -449,51 +450,21 @@ void handleInput()
 				// Shows directory of dropped file
 				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"Suitable Text dropped on window",dropped_filedir,win);
 
+				//checks to find if the text contains the right title
 				//if ((file.find(pos) != std::string::npos) && playerFiles == 0)
 				if (file.find(pos) != std::string::npos)
 				{
-					switch (playerFiles){
-					case 0:
-						PlayerPosition[playerFiles] = loadLog(file);
-						initializeVertexBuffer(playerFiles); //load data into a vertex buffer
-						++playerFiles;
-						break;
-					case 1:
-						PlayerPosition[playerFiles] = loadLog(file);
-						initializeVertexBuffer(playerFiles); //load data into a vertex buffer
-						++playerFiles;
-						break;
-					case 2:
-						PlayerPosition[playerFiles] = loadLog(file);
-						initializeVertexBuffer(playerFiles);
-						++playerFiles;
-						break;
-					case 3:
-						PlayerPosition[playerFiles] = loadLog(file);
-						initializeVertexBuffer(playerFiles);
-						++playerFiles;
-						break;
-					case 4:
-						PlayerPosition[playerFiles] = loadLog(file);
-						initializeVertexBuffer(playerFiles);
-						playerFiles = 0;
-						break;
-					default:
-						break;
+					PlayerPosition[DroppedIndex] = loadLog(file);
+					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
+					Togglefile[DroppedIndex] = true;
+					++DroppedIndex;
+
+					if (DroppedIndex > filesHeld)
+					{
+						DroppedIndex = 0;
 					}
+					
 				}
-
-				//check file title for Player Position
-			/*	if (dropped_filedir contains player position && dropped player files = 0)
-				{
-					dropped files++
-				}*/
-
-				//create varibale to store it in dynamically
-				
-				//MYLOG = loadLog(file);
-
-				//initializeVertexBuffer(); //load data into a vertex buffer
 			}
 			else
 			{
@@ -525,83 +496,44 @@ void handleInput()
 					Cam3 = { 0.0f, 0.000001f, 0.0f };
 					break;
 					//Decrease X axis
-				case SDLK_a:
-					A = true;
-					break;
+				case SDLK_a:	A = true;	break;
 					//Increase X axis
-				case SDLK_d:
-					D = true;
-					break;
+				case SDLK_d:	D = true;	break;
 					//Decrease Y axis
-				case SDLK_e:
-					E = true;
-					break;
+				case SDLK_e:	E = true;	break;
 					//Increase Y axis
-				case SDLK_q:
-					Q = true;
-					break;
-
+				case SDLK_q:	Q = true;	break;
 					//Decrease Z axis
-				case SDLK_w:
-					W = true;
-					break;
+				case SDLK_w:	W = true;	break;
 					//Increase Z axis
-				case SDLK_s:
-					S = true;
-					break;
+				case SDLK_s:	S = true;	break;
+
+				case SDLK_1: Togglefile[0] = !Togglefile[0];	break;
+				case SDLK_2: Togglefile[1] = !Togglefile[1];	break;
+				case SDLK_3: Togglefile[2] = !Togglefile[2];	break;
+				case SDLK_4: Togglefile[3] = !Togglefile[3];	break;
+				case SDLK_5: Togglefile[4] = !Togglefile[4];	break;
 
 
-				case SDLK_1:
-					
-					break;
-
-				case SDLK_KP_8:
-					Eight = true;
-					break;
-				case SDLK_KP_6:
-					Six = true;
-					break;
-				case SDLK_KP_4:
-					Four = true;
-					break;
-				case SDLK_KP_2:
-					Two = true;
-					break;
+				case SDLK_KP_8:	Eight = true;	break;
+				case SDLK_KP_6:	Six = true;		break;
+				case SDLK_KP_4:	Four = true;	break;
+				case SDLK_KP_2:	Two = true;		break;
 				}	
 			break;
 		case SDL_KEYUP:
 			switch (event.key.keysym.sym)
 			{
-			case SDLK_w:
-				W = false;
-				break;
-			case SDLK_s:
-				S = false;
-				break;
-			case SDLK_a:
-				A = false;
-				break;
-			case SDLK_d:
-				D = false;
-				break;
-			case SDLK_q:
-				Q = false;
-				break;
-			case SDLK_e:
-				E = false;
-				break;
-			case SDLK_KP_8:
-				Eight = false;
-				break;
-			case SDLK_KP_6:
-				Six = false;
-				break;
-			case SDLK_KP_4:
-				Four = false;
-				break;
-			case SDLK_KP_2:
-				Two = false;
-				break;
+				case SDLK_w:	W = false;		break;
+				case SDLK_s:	S = false;		break;
+				case SDLK_a:	A = false;		break;
+				case SDLK_d:	D = false;		break;
+				case SDLK_q:	Q = false;		break;
+				case SDLK_e:	E = false;		break;
+				case SDLK_KP_8:	Eight = false;	break;
+				case SDLK_KP_6:	Six = false;	break;
+				case SDLK_KP_4:	Four = false;	break;
+				case SDLK_KP_2:	Two = false;	break;
 			}
 			break;
 
@@ -672,25 +604,56 @@ void render()
 
 	//Do 3d Drawing
 	//-------------------------------
-	glBindVertexArray(vertexArrayObject[0]);
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[0].size());
+	//Display the most recently dropped file
+	/*if (Togglefile[DroppedIndex] == false)
+	{
+		glBindVertexArray(vertexArrayObject[DroppedIndex - 1]);
+		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[DroppedIndex - 1].size());
+	}
+*/
+	for (int i = 0; i < 5; i++)
+	{
+		if (Togglefile[i] == true)
+		{
+			glBindVertexArray(vertexArrayObject[i]);
+			glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+			glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[i].size());
+		}
+	}
 
-	glBindVertexArray(vertexArrayObject[1]);
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[1].size());
 
-	glBindVertexArray(vertexArrayObject[2]);
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[2].size());
-
-	glBindVertexArray(vertexArrayObject[3]);
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[3].size());
-
-	glBindVertexArray(vertexArrayObject[4]);
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-	glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[4].size());
+	/*if (1 == true)
+	{
+		glBindVertexArray(vertexArrayObject[0]);
+		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[0].size());
+	}
+	
+	if (2 == true)
+	{
+		glBindVertexArray(vertexArrayObject[1]);
+		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[1].size());
+	}
+	if (3 == true)
+	{
+		glBindVertexArray(vertexArrayObject[2]);
+		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[2].size());
+	}
+	if (4 == true)
+	{
+		glBindVertexArray(vertexArrayObject[3]);
+		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[3].size());
+	}
+	if (5 == true)
+	{
+		glBindVertexArray(vertexArrayObject[4]);
+		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[4].size());
+	}*/
 
 
 	//set projectionMatrix - how we go from 3D to 2D
