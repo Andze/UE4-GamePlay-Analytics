@@ -410,7 +410,7 @@ string getFileExt(const string& s) {
 	return("");
 }
 int DroppedIndex;
-int filesHeld = 5;
+int const filesHeld = 5;
 // tag::handleInput[]
 void handleInput()
 {
@@ -454,16 +454,19 @@ void handleInput()
 				//if ((file.find(pos) != std::string::npos) && playerFiles == 0)
 				if (file.find(pos) != std::string::npos)
 				{
-					PlayerPosition[DroppedIndex] = loadLog(file);
-					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
-					Togglefile[DroppedIndex] = true;
-					++DroppedIndex;
-
-					if (DroppedIndex > filesHeld)
+					if (DroppedIndex >= filesHeld)
 					{
 						DroppedIndex = 0;
 					}
-					
+
+					PlayerPosition[DroppedIndex] = loadLog(file);
+					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
+					for (int i = 0; i < 5; i++)
+					{
+						Togglefile[i] = false;
+					}
+					Togglefile[DroppedIndex] = true;
+					++DroppedIndex;				
 				}
 			}
 			else
@@ -519,6 +522,7 @@ void handleInput()
 				case SDLK_KP_6:	Six = true;		break;
 				case SDLK_KP_4:	Four = true;	break;
 				case SDLK_KP_2:	Two = true;		break;
+
 				}	
 			break;
 		case SDL_KEYUP:
@@ -618,42 +622,9 @@ void render()
 		{
 			glBindVertexArray(vertexArrayObject[i]);
 			glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-			glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[i].size());
+			glDrawArrays(GL_LINES, 0, PlayerPosition[i].size());
 		}
 	}
-
-
-	/*if (1 == true)
-	{
-		glBindVertexArray(vertexArrayObject[0]);
-		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[0].size());
-	}
-	
-	if (2 == true)
-	{
-		glBindVertexArray(vertexArrayObject[1]);
-		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[1].size());
-	}
-	if (3 == true)
-	{
-		glBindVertexArray(vertexArrayObject[2]);
-		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[2].size());
-	}
-	if (4 == true)
-	{
-		glBindVertexArray(vertexArrayObject[3]);
-		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[3].size());
-	}
-	if (5 == true)
-	{
-		glBindVertexArray(vertexArrayObject[4]);
-		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[4].size());
-	}*/
 
 
 	//set projectionMatrix - how we go from 3D to 2D
