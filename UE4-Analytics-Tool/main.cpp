@@ -392,7 +392,7 @@ void initializeVertexBuffer(int index)
 }
 // end::initializeVertexBuffer[]
 
-int const binsize = 400;
+int const binsize = 50;
 float rangeMax = 2200;
 float rangeMin = -2200;
 // X= 2200 Y = 2000
@@ -423,32 +423,74 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 
 	std::vector<GLfloat> Ranges = DivideRange(rangeMin, rangeMax, binsize);
 
-	int Count[binsize];
+	float Count[binsize * binsize];
+	for (unsigned int i = 0; i < (binsize * binsize); i++)
+	{
+		Count[i] = 0;
+	}
 
 	//read through data and increase count if found in correct bin
 	for (unsigned int j = 0; j < PlayerData.size(); j++)
 	{
-		//Do something with X data
+		int X_Cell = 0;
+		int Y_Cell = 0;
+		//find where on the X axis
 		for (unsigned int i = 0; i < binsize; i++)
 		{
+			//X data within Bin
 			if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
 			{
-				Count[i]++;
+				//the cell the number was found in along X
+				X_Cell = i;
+				for (unsigned int i = 0; i < binsize; i++)
+				{
+					if (PlayerData[j + 1] >= Ranges[i] && PlayerData[j + 1] < Ranges[i + 1])
+					{
+						//The cell the number was found along in the Y
+						Y_Cell = i;
+						int cell = (binsize * Y_Cell) + X_Cell;
+						Count[cell] += 1;
+					}
+				}
 			}
 		}
-		j++;
-		//Do something with Y data
-		for (unsigned int i = 0; i < binsize; i++)
-		{
-			if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
-			{
-				Count[i]++;
-			}
-		}
-		//Skip all Z data here
-		j++;
-	}
+		j = j + 2;
 
+		////Then go on the Y axis 
+		////then loop through each bin
+		//for (unsigned int i = 0; i < binsize; i++)
+		//{
+		//	//X data within Bin
+		//	if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])		
+		//		Count[i] += 1;
+		//		
+		//	//Y data within Bin
+		//	if (PlayerData[j + 1] >= Ranges[i] && PlayerData[j + 1] < Ranges[i + 1])
+		//		Count[i] += 1;		
+		//}
+		//j = j + 2;
+		//
+		////Do something with X data
+		//for (unsigned int i = 0; i < binsize; i++)
+		//{
+		//	if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
+		//	{
+		//		Count[i] += 1;
+		//	}
+		//}
+		//j++;
+		////Do something with Y data
+		//for (unsigned int i = 0; i < binsize; i++)
+		//{
+		//	if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
+		//	{
+		//		Count[i] += 1;
+		//	}
+		//}
+		////Skip all Z data here
+		//j++;
+	}
+	//int width / 
 	//add counts to GridData
 	
 	//calculate size of each bin
