@@ -65,7 +65,7 @@ std::string loadShader(const string filePath) {
 // end::loadShader[]
 
 //Function to return all the data in a log file in the form of a float array
-std::vector<GLfloat> loadLog(const string filePath)
+std::vector<GLfloat> loadLog(const string filePath, int scale)
 {
 	//Create Array for Log
 	std::vector<GLfloat> LogData;
@@ -84,8 +84,13 @@ std::vector<GLfloat> loadLog(const string filePath)
 			{
 				if (pos > prev)
 				{
-					//add data to array							//scale down for window size
-					LogData.push_back((std::stof(line.substr(prev, pos - prev)))/1000);
+					if (scale == 0)
+						LogData.push_back(std::stof(line.substr(prev, pos - prev)));
+					else
+					{
+						//add data to array							//scale down for window size
+						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
+					}
 				}
 				prev = pos + 1;
 			}
@@ -387,21 +392,21 @@ void initializeVertexBuffer(int index)
 }
 // end::initializeVertexBuffer[]
 
-int const binsize = 10;
-float rangeX[] = { -2200, 0, 1, 2200 };
-float rangeY[] = { -2200, 0, 1, 2200 };
-
+int const binsize = 400;
+float rangeMax = 2200;
+float rangeMin = -2200;
+// X= 2200 Y = 2000
 
 std::vector<GLfloat> DivideRange(int min, int max, int size)
 {
 	std::vector<GLfloat> Bins;
 
-	int length = (max - min + 1) / size;
+	float length = (max - min + 1) / size;
 
 	for (unsigned int i = 0; i < size; i++)
 	{
 		//Bins[i] = min + length*i;
-		int temp = min + (length * i);
+		float temp = min + (length * i);
 		Bins.push_back(temp);
 	}
 	Bins.push_back(max);
@@ -411,60 +416,47 @@ std::vector<GLfloat> DivideRange(int min, int max, int size)
 }
 
 
-//(unsigned)(number - lower) <= (upper - lower)
-
-// X= 2200 Y = 2000
-
-std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Data)
+std::vector<GLfloat> CreateHeatmap(const string filePath)
 {
+	std::vector<GLfloat> PlayerData = loadLog(filePath, 0);
 	std::vector<GLfloat> GridData;
 
-	std::vector<GLfloat> Ranges = DivideRange(-2200, 2200, 100);
+	std::vector<GLfloat> Ranges = DivideRange(rangeMin, rangeMax, binsize);
 
+	int Count[binsize];
 
-	int countX[binsize];
-	int countY[binsize];
-
-	int countx = 0;
-	int county = 0;
-	int countx2 = 0;
-	int county2 = 0;
 	//read through data and increase count if found in correct bin
-	for (unsigned int i = 0; i < Data.size(); i++)
+	for (unsigned int j = 0; j < PlayerData.size(); j++)
 	{
+		//Do something with X data
 		for (unsigned int i = 0; i < binsize; i++)
 		{
-
+			if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
+			{
+				Count[i]++;
+			}
 		}
-		//Do something with X data
-		if (Data[i] <= rangeX[1] && Data[i] >= rangeX[0])
-		{
-			//add data to array
-			countx++;
-		}
-		if (Data[i] <= rangeX[3] && Data[i] >= rangeX[2])
-		{
-			//add data to array
-			countx2++;
-		}
-		i++;
-
+		j++;
 		//Do something with Y data
-		if (Data[i] <= rangeY[1] && Data[i] >= rangeY[0])
+		for (unsigned int i = 0; i < binsize; i++)
 		{
-			//add data to array
-			county++;
+			if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
+			{
+				Count[i]++;
+			}
 		}
-		if (Data[i] <= rangeY[3] && Data[i] >= rangeY[2])
-		{
-			//add data to array
-			county2++;
-		}
-		i++;
+		//Skip all Z data here
+		j++;
 	}
 
-	//add data to GridData
-
+	//add counts to GridData
+	
+	//calculate size of each bin
+	//give position data for each bin
+	//give colour values based on the count for each bin
+	//X,Y,Z
+	//R,G,B
+	
 	return GridData;
 
 }
@@ -541,9 +533,9 @@ void handleInput()
 					}
 
 					//trajectory
-					PlayerPosition[DroppedIndex] = loadLog(file);
+					PlayerPosition[DroppedIndex] = loadLog(file,1000);
 					//Heatmap
-					PlayerHeatmap[DroppedIndex] = CreateHeatmap(PlayerPosition[DroppedIndex]);
+					PlayerHeatmap[DroppedIndex] = CreateHeatmap(file);
 					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
 					for (int i = 0; i < 5; i++)
 					{
