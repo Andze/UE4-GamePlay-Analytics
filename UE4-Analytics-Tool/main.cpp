@@ -84,12 +84,8 @@ std::vector<GLfloat> loadLog(const string filePath)
 			{
 				if (pos > prev)
 				{
-					//convert string data into float using stof
-					float temp = std::stof(line.substr(prev, pos - prev));
-					//scale down for window size
-					temp /= 1000;
-					//add data to array
-					LogData.push_back(temp);				
+					//add data to array							//scale down for window size
+					LogData.push_back((std::stof(line.substr(prev, pos - prev)))/1000);
 				}
 				prev = pos + 1;
 			}
@@ -153,6 +149,7 @@ GLint projectionMatrixLocation;
 GLuint vertexDataBufferObject[5];
 GLuint vertexArrayObject[5];
 std::vector<GLfloat> PlayerPosition[5];
+std::vector<GLfloat> PlayerHeatmap[5];
 
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
@@ -390,6 +387,90 @@ void initializeVertexBuffer(int index)
 }
 // end::initializeVertexBuffer[]
 
+int const binsize = 10;
+float rangeX[] = { -2200, 0, 1, 2200 };
+float rangeY[] = { -2200, 0, 1, 2200 };
+
+
+std::vector<GLfloat> DivideRange(int min, int max, int size)
+{
+	std::vector<GLfloat> Bins;
+
+	int length = (max - min + 1) / size;
+
+	for (unsigned int i = 0; i < size; i++)
+	{
+		//Bins[i] = min + length*i;
+		int temp = min + (length * i);
+		Bins.push_back(temp);
+	}
+	Bins.push_back(max);
+
+	return Bins;
+
+}
+
+
+//(unsigned)(number - lower) <= (upper - lower)
+
+// X= 2200 Y = 2000
+
+std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Data)
+{
+	std::vector<GLfloat> GridData;
+
+	std::vector<GLfloat> Ranges = DivideRange(-2200, 2200, 100);
+
+
+	int countX[binsize];
+	int countY[binsize];
+
+	int countx = 0;
+	int county = 0;
+	int countx2 = 0;
+	int county2 = 0;
+	//read through data and increase count if found in correct bin
+	for (unsigned int i = 0; i < Data.size(); i++)
+	{
+		for (unsigned int i = 0; i < binsize; i++)
+		{
+
+		}
+		//Do something with X data
+		if (Data[i] <= rangeX[1] && Data[i] >= rangeX[0])
+		{
+			//add data to array
+			countx++;
+		}
+		if (Data[i] <= rangeX[3] && Data[i] >= rangeX[2])
+		{
+			//add data to array
+			countx2++;
+		}
+		i++;
+
+		//Do something with Y data
+		if (Data[i] <= rangeY[1] && Data[i] >= rangeY[0])
+		{
+			//add data to array
+			county++;
+		}
+		if (Data[i] <= rangeY[3] && Data[i] >= rangeY[2])
+		{
+			//add data to array
+			county2++;
+		}
+		i++;
+	}
+
+	//add data to GridData
+
+	return GridData;
+
+}
+
+
+
 // tag::loadAssets[]
 void loadAssets()
 {
@@ -459,7 +540,10 @@ void handleInput()
 						DroppedIndex = 0;
 					}
 
+					//trajectory
 					PlayerPosition[DroppedIndex] = loadLog(file);
+					//Heatmap
+					PlayerHeatmap[DroppedIndex] = CreateHeatmap(PlayerPosition[DroppedIndex]);
 					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
 					for (int i = 0; i < 5; i++)
 					{
@@ -592,11 +676,6 @@ void render()
 {
 	glUseProgram(theProgram); //installs the program object specified by program as part of current rendering state
 
-	
-	
-
-
-
 	//set projectionMatrix - how we go from 2D to 3D.............................................
 	glUniformMatrix4fv(projectionMatrixLocation, 1, false, glm::value_ptr(projectionMatrix));
 	//set viewMatrix - how we control the view (viewpoint, view direction, etc)
@@ -608,14 +687,9 @@ void render()
 
 	//Do 3d Drawing
 	//-------------------------------
-	//Display the most recently dropped file
-	/*if (Togglefile[DroppedIndex] == false)
-	{
-		glBindVertexArray(vertexArrayObject[DroppedIndex - 1]);
-		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-		glDrawArrays(GL_LINE_STRIP, 0, PlayerPosition[DroppedIndex - 1].size());
-	}
-*/
+	//change the line width from 1 to...
+	glLineWidth(2);
+	//drawing for all data
 	for (int i = 0; i < 5; i++)
 	{
 		if (Togglefile[i] == true)
@@ -635,8 +709,7 @@ void render()
 	//Do 2D Drawing
 	//---------------------------------------------
 
-	//glBindVertexArray(0);//unbind the vertex data to be neat
-
+	glBindVertexArray(0);//unbind the vertex data to be neat
 	glUseProgram(0); //clean  up
 }
 // end::render[]
