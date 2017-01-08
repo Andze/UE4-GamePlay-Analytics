@@ -65,11 +65,10 @@ std::string loadShader(const string filePath) {
 // end::loadShader[]
 
 //Function to return all the data in a log file in the form of a float array
-std::vector<GLfloat> loadLog(const string filePath, int scale)
+std::vector<GLfloat> loadLog(const string filePath, int scale, std::vector<GLfloat> RGB)
 {
 	//Create Array for Log
 	std::vector<GLfloat> LogData;
-
 	//Load File
 	std::ifstream fileStream(filePath, std::ios::in | std::ios::binary);
 	if (fileStream)
@@ -90,6 +89,12 @@ std::vector<GLfloat> loadLog(const string filePath, int scale)
 					{
 						//add data to array							//scale down for window size
 						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
+					/*	prev = pos + 1;
+						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
+						prev = pos + 1;
+						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
+
+						LogData.push_back(RGB[0]); LogData.push_back(RGB[1]); LogData.push_back(RGB[2]);*/
 					}
 				}
 				prev = pos + 1;
@@ -100,19 +105,53 @@ std::vector<GLfloat> loadLog(const string filePath, int scale)
 				break;
 			}
 		}
-
 		cout << "LOG Loaded from " << filePath << endl;
-
 		//Save to a single string
 		/*string fileData((std::istreambuf_iterator<char>(fileStream)),(std::istreambuf_iterator<char>()));*/
-
 		//return data
 		return LogData;
 	}
-
 	else
 	{
 		cerr << "LOG could not be loaded - cannot read file " << filePath << ". File does not exist." << endl;
+		return LogData;
+	}
+}
+
+//Function to return all the data in a log file in the form of a float array
+std::vector<GLfloat> loadHeatMapData(const string filePath)
+{
+	//Create Array for Log
+	std::vector<GLfloat> LogData;
+	//Load File
+	std::ifstream fileStream(filePath, std::ios::in | std::ios::binary);
+	if (fileStream)
+	{
+		//parse Log
+		std::string line;
+		while (std::getline(fileStream, line))
+		{
+			std::size_t prev = 0, pos;
+			//Parse out info not needed
+			while ((pos = line.find_first_of("X=Y=Z=; ", prev)) != std::string::npos)
+			{
+				if (pos > prev)
+				{
+					LogData.push_back(std::stof(line.substr(prev, pos - prev)));
+				}
+				prev = pos + 1;
+			}
+			//stop loop when reaching the end
+			if (prev < line.length())
+			{
+				break;
+			}
+		}
+		//return data
+		return LogData;
+	}
+	else
+	{
 		return LogData;
 	}
 }
@@ -140,7 +179,6 @@ glm::vec3 Cam3 = { 0.0f, 0.000001f, 0.0f };
 //our GL and GLSL variables
 //programIDs
 GLuint theProgram; //GLuint that we'll fill in to refer to the GLSL program (only have 1 at this point)
-
 GLint positionLocation; //GLuint that we'll fill in with the location of the `position` attribute in the GLSL
 GLint vertexColorLocation; //GLuint that we'll fill in with the location of the `vertexColor` attribute in the GLSL
 GLint textureLocation;
@@ -165,7 +203,6 @@ glm::mat4 modelMatrix;
 
 // end Global Variables
 /////////////////////////
-
 
 // tag::initialise[]
 void initialise()
@@ -395,9 +432,9 @@ void initializeVertexBuffer(int index)
 }
 // end::initializeVertexBuffer[]
 
-int const binsize = 50;
-float rangeMax = 2200;
-float rangeMin = -2200;
+int const binsize = 45;
+float rangeMax = 2400;
+float rangeMin = -2400;
 float length = 0;
 // X= 2200 Y = 2000
 
@@ -416,7 +453,6 @@ std::vector<GLfloat> DivideRange(int min, int max, int size)
 	Bins.push_back(max);
 
 	return Bins;
-
 }
 
 std::vector<GLfloat> HeatMapColours(int Value)
@@ -438,14 +474,29 @@ std::vector<GLfloat> HeatMapColours(int Value)
 	return RGBValue;
 }
 
+std::vector<GLfloat> TrajectoryColours(int Value)
+{
+	std::vector<GLfloat> RGBValue;
+
+	if (Value == 0) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+	if (Value == 1) { RGBValue.push_back(1.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+	if (Value == 2) { RGBValue.push_back(0.0); RGBValue.push_back(2.0); RGBValue.push_back(0.0); }
+	if (Value == 3) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(3.0); }
+	if (Value == 4) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+	if (Value == 5) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+
+	return RGBValue;
+}
+
 
 std::vector<GLfloat> CreateHeatmap(const string filePath)
 {
-	std::vector<GLfloat> PlayerData = loadLog(filePath, 0);
+	std::vector<GLfloat> PlayerData = loadHeatMapData(filePath);
 	std::vector<GLfloat> GridData;
 
+	std::vector<GLfloat> RangesY = DivideRange(2400, -2400, binsize);
 	std::vector<GLfloat> Ranges = DivideRange(rangeMin, rangeMax, binsize);
-
+	
 	float Count[binsize * binsize];
 	for (unsigned int i = 0; i < (binsize * binsize); i++)
 	{
@@ -469,7 +520,7 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 				for (unsigned int i = 0; i < binsize; i++)
 				{
 					//Y data within Bin
-					if (PlayerData[j + 1] >= Ranges[i] && PlayerData[j + 1] < Ranges[i + 1])
+					if (PlayerData[j + 1] <= RangesY[i] && PlayerData[j + 1] > RangesY[i + 1])
 					{
 						//The cell the number was found along in the Y
 						Y_Cell = i;
@@ -483,11 +534,7 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 		j = j + 2;
 	}
 
-	//Create Plane in each square using cell length (width and Height)
-
-	//Loop for collums
-	//loop for rows
-
+	// Workings for creating a Plane
 	//				X						Y						Z
 	//	(rangeMin + (collum * Length)) , rangeMax - (Row * Length), Z )			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
 	//
@@ -496,17 +543,18 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 	//																			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
 	//
 	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )	(rangeMin + ((collum + 1) * Length)) , rangeMax - ((Row + 1) * Length), Z )
-	// MAKE SURE TO SCALE ALL POSITION VALUES DOWN
+	//	 MAKE SURE TO SCALE ALL POSITION VALUES DOWN
 
 	for (unsigned int Rows = 0; Rows < binsize; Rows++)
 	{
 		for (unsigned int Collums = 0; Collums < binsize; Collums++)
 		{
-			//Generate Colours based on the count
+			//find Cell
 			int Cell = (binsize * Rows) + Collums;
+			//Set Z value
 			float Z = -0.5;
+			//Generate Colours based on the count
 			std::vector<GLfloat> RGB = HeatMapColours(Count[Cell]);
-
 
 			//First Triangle
 			//First Point    X	Y	Z
@@ -606,7 +654,8 @@ void handleInput()
 					}
 
 					//trajectory
-					//PlayerPosition[DroppedIndex] = loadLog(file,1000);
+					std::vector<GLfloat> RGB = TrajectoryColours(DroppedIndex);
+					//PlayerPosition[DroppedIndex] = loadLog(file,1000, RGB);
 					PlayerPosition[DroppedIndex] = CreateHeatmap(file);
 					//Heatmap
 					//PlayerHeatmap[DroppedIndex] = CreateHeatmap(file);
