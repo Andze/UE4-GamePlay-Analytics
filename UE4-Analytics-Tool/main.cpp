@@ -394,7 +394,7 @@ void initializeVertexBuffer(int index)
 }
 // end::initializeVertexBuffer[]
 
-int const binsize = 10;
+int const binsize = 25;
 float rangeMax = 2200;
 float rangeMin = -2200;
 float length = 0;
@@ -486,28 +486,34 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 			for (unsigned int Collums = 0; Collums < binsize; Collums++)
 			{
 				float Z = 0;
+				//Generate Colours based on the count
+				int Cell = (binsize * Rows) + Collums;
+				int ColourValue = Count[Cell];
+				ColourValue / 100;
+
+
 				//First Triangle
 				//First Point    X	Y	Z
 				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
 				//Colours
-				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
 				//Second Point	X	Y	Z
 				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
-				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
 				//Third Point	X	Y	Z
 				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
-				GridData.push_back(1); GridData.push_back(0); GridData.push_back(0);
+				GridData.push_back(ColourValue); GridData.push_back(0); GridData.push_back(0);
 
 				//Second Triangle
 				//First Point    X	Y	Z
 				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
-				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
 				//Second Point	X	Y	Z
 				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
-				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
 				//Third Point	X	Y	Z
 				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
-				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
 			}
 		}
 	}
