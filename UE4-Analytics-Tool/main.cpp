@@ -364,11 +364,13 @@ void initializeVertexArrayObject(int index)
 	glBindBuffer(GL_ARRAY_BUFFER, vertexDataBufferObject[index]); //bind vertexDataBufferObject
 
 	glEnableVertexAttribArray(positionLocation); //enable attribute at index positionLocation
-	//glEnableVertexAttribArray(vertexColorLocation); //enable attribute at index vertexColorLocation
+	glEnableVertexAttribArray(vertexColorLocation); //enable attribute at index vertexColorLocation
 
 	// tag::glVertexAttribPointer[]
-	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0); //(4 * sizeof(GL_FLOAT)), (GLvoid *)(0 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
-	//glVertexAttribPointer(vertexColorLocation, 4, GL_FLOAT, GL_FALSE, (7 * sizeof(GL_FLOAT)), (GLvoid *)(3 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index vertexColorLocation
+	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, (6 * sizeof(GL_FLOAT)), (GLvoid *)(0 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
+	glVertexAttribPointer(vertexColorLocation, 3, GL_FLOAT, GL_FALSE, (6 * sizeof(GL_FLOAT)), (GLvoid *)(3 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index vertexColorLocation
+	//glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0); //(4 * sizeof(GL_FLOAT)), (GLvoid *)(0 * sizeof(GLfloat))); //specify that position data contains four floats per vertex, and goes into attribute index positionLocation
+	
 	// end::glVertexAttribPointer[]
 
 	glBindVertexArray(0); //unbind the vertexArrayObject so we can't change it
@@ -392,16 +394,17 @@ void initializeVertexBuffer(int index)
 }
 // end::initializeVertexBuffer[]
 
-int const binsize = 50;
+int const binsize = 10;
 float rangeMax = 2200;
 float rangeMin = -2200;
+float length = 0;
 // X= 2200 Y = 2000
 
 std::vector<GLfloat> DivideRange(int min, int max, int size)
 {
 	std::vector<GLfloat> Bins;
 
-	float length = (max - min + 1) / size;
+	length = (max - min + 1) / size;
 
 	for (unsigned int i = 0; i < size; i++)
 	{
@@ -434,7 +437,7 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 	{
 		int X_Cell = 0;
 		int Y_Cell = 0;
-		//find where on the X axis
+		//loop Bins along the X axis
 		for (unsigned int i = 0; i < binsize; i++)
 		{
 			//X data within Bin
@@ -442,8 +445,10 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 			{
 				//the cell the number was found in along X
 				X_Cell = i;
+				//loop through Bins on Y axis
 				for (unsigned int i = 0; i < binsize; i++)
 				{
+					//Y data within Bin
 					if (PlayerData[j + 1] >= Ranges[i] && PlayerData[j + 1] < Ranges[i + 1])
 					{
 						//The cell the number was found along in the Y
@@ -454,51 +459,59 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 				}
 			}
 		}
+		//skip over Y and Z values and move onto next position data
 		j = j + 2;
-
-		////Then go on the Y axis 
-		////then loop through each bin
-		//for (unsigned int i = 0; i < binsize; i++)
-		//{
-		//	//X data within Bin
-		//	if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])		
-		//		Count[i] += 1;
-		//		
-		//	//Y data within Bin
-		//	if (PlayerData[j + 1] >= Ranges[i] && PlayerData[j + 1] < Ranges[i + 1])
-		//		Count[i] += 1;		
-		//}
-		//j = j + 2;
-		//
-		////Do something with X data
-		//for (unsigned int i = 0; i < binsize; i++)
-		//{
-		//	if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
-		//	{
-		//		Count[i] += 1;
-		//	}
-		//}
-		//j++;
-		////Do something with Y data
-		//for (unsigned int i = 0; i < binsize; i++)
-		//{
-		//	if (PlayerData[j] >= Ranges[i] && PlayerData[j] < Ranges[i + 1])
-		//	{
-		//		Count[i] += 1;
-		//	}
-		//}
-		////Skip all Z data here
-		//j++;
 	}
-	//int width / 
-	//add counts to GridData
-	
-	//calculate size of each bin
-	//give position data for each bin
-	//give colour values based on the count for each bin
-	//X,Y,Z
-	//R,G,B
-	
+
+	//loop over the total amout of Cells/bins
+	for (unsigned int i = 0; i < (binsize * binsize); i++)
+	{
+		//Create Plane in each square using cell length (width and Height)
+
+		//Loop for collums
+		//loop for rows
+		
+		//				X						Y						Z
+		//	(rangeMin + (collum * Length)) , rangeMax - (Row * Length), Z )			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
+		//
+		//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )
+
+		//																			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
+		//
+		//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )	(rangeMin + ((collum + 1) * Length)) , rangeMax - ((Row + 1) * Length), Z )
+		// MAKE SURE TO SCALE ALL POSITION VALUES DOWN
+
+		for (unsigned int Rows = 0; Rows < binsize; Rows++)
+		{
+			for (unsigned int Collums = 0; Collums < binsize; Collums++)
+			{
+				float Z = 0;
+				//First Triangle
+				//First Point    X	Y	Z
+				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
+				//Colours
+				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				//Second Point	X	Y	Z
+				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
+				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				//Third Point	X	Y	Z
+				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
+				GridData.push_back(1); GridData.push_back(0); GridData.push_back(0);
+
+				//Second Triangle
+				//First Point    X	Y	Z
+				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
+				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				//Second Point	X	Y	Z
+				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
+				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+				//Third Point	X	Y	Z
+				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
+				GridData.push_back(1.0); GridData.push_back(0.0); GridData.push_back(0.0);
+			}
+		}
+	}
+
 	return GridData;
 
 }
@@ -514,7 +527,7 @@ void loadAssets()
 }
 // end::loadAssets[]
 
-bool W, A, S, D, Q, E, UP, DOWN, R, F, Eight, Two, Six, Four = false;
+bool W, A, S, D, Q, E, UP, DOWN, F, Eight, Two, Six, Four = false;
 bool Togglefile[5];
 string getFileExt(const string& s) {
 
@@ -575,9 +588,10 @@ void handleInput()
 					}
 
 					//trajectory
-					PlayerPosition[DroppedIndex] = loadLog(file,1000);
+					//PlayerPosition[DroppedIndex] = loadLog(file,1000);
+					PlayerPosition[DroppedIndex] = CreateHeatmap(file);
 					//Heatmap
-					PlayerHeatmap[DroppedIndex] = CreateHeatmap(file);
+					//PlayerHeatmap[DroppedIndex] = CreateHeatmap(file);
 					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
 					for (int i = 0; i < 5; i++)
 					{
@@ -724,13 +738,23 @@ void render()
 	//change the line width from 1 to...
 	glLineWidth(2);
 	//drawing for all data
+	/*for (int i = 0; i < 5; i++)
+	{
+		if (Togglefile[i] == true)
+		{
+			glBindVertexArray(vertexArrayObject[i]);
+			glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+			glDrawArrays(GL_TRIANGLES, 0, PlayerHeatmap[i].size());
+		}
+	}*/
+
 	for (int i = 0; i < 5; i++)
 	{
 		if (Togglefile[i] == true)
 		{
 			glBindVertexArray(vertexArrayObject[i]);
 			glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-			glDrawArrays(GL_LINES, 0, PlayerPosition[i].size());
+			glDrawArrays(GL_TRIANGLES, 0, PlayerPosition[i].size());
 		}
 	}
 
