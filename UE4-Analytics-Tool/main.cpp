@@ -155,6 +155,7 @@ GLuint vertexDataBufferObject[5];
 GLuint vertexArrayObject[5];
 std::vector<GLfloat> PlayerPosition[5];
 std::vector<GLfloat> PlayerHeatmap[5];
+std::vector<GLfloat> Colours;
 
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
@@ -394,7 +395,7 @@ void initializeVertexBuffer(int index)
 }
 // end::initializeVertexBuffer[]
 
-int const binsize = 25;
+int const binsize = 50;
 float rangeMax = 2200;
 float rangeMin = -2200;
 float length = 0;
@@ -416,6 +417,25 @@ std::vector<GLfloat> DivideRange(int min, int max, int size)
 
 	return Bins;
 
+}
+
+std::vector<GLfloat> HeatMapColours(int Value)
+{
+	std::vector<GLfloat> RGBValue;
+
+	if (Value == Colours[0]) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+
+	if (Value > Colours[0] && Value < Colours[1]) { RGBValue.push_back(1.0); RGBValue.push_back(1.0); RGBValue.push_back(0.0); }
+	
+	if (Value >= Colours[1] && Value < Colours[2]) { RGBValue.push_back(1.0); RGBValue.push_back(0.5); RGBValue.push_back(0.0); }
+
+	if (Value >= Colours[2] && Value < Colours[3]) { RGBValue.push_back(0.5); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+
+	if (Value >= Colours[3] && Value < Colours[4]) { RGBValue.push_back(1.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+
+	if (Value >= Colours[4]) { RGBValue.push_back(1.0); RGBValue.push_back(1.0); RGBValue.push_back(1.0); }
+
+	return RGBValue;
 }
 
 
@@ -463,63 +483,55 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 		j = j + 2;
 	}
 
-	//loop over the total amout of Cells/bins
-	for (unsigned int i = 0; i < (binsize * binsize); i++)
+	//Create Plane in each square using cell length (width and Height)
+
+	//Loop for collums
+	//loop for rows
+
+	//				X						Y						Z
+	//	(rangeMin + (collum * Length)) , rangeMax - (Row * Length), Z )			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
+	//
+	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )
+
+	//																			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
+	//
+	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )	(rangeMin + ((collum + 1) * Length)) , rangeMax - ((Row + 1) * Length), Z )
+	// MAKE SURE TO SCALE ALL POSITION VALUES DOWN
+
+	for (unsigned int Rows = 0; Rows < binsize; Rows++)
 	{
-		//Create Plane in each square using cell length (width and Height)
-
-		//Loop for collums
-		//loop for rows
-		
-		//				X						Y						Z
-		//	(rangeMin + (collum * Length)) , rangeMax - (Row * Length), Z )			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
-		//
-		//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )
-
-		//																			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
-		//
-		//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )	(rangeMin + ((collum + 1) * Length)) , rangeMax - ((Row + 1) * Length), Z )
-		// MAKE SURE TO SCALE ALL POSITION VALUES DOWN
-
-		for (unsigned int Rows = 0; Rows < binsize; Rows++)
+		for (unsigned int Collums = 0; Collums < binsize; Collums++)
 		{
-			for (unsigned int Collums = 0; Collums < binsize; Collums++)
-			{
-				float Z = 0;
-				//Generate Colours based on the count
-				int Cell = (binsize * Rows) + Collums;
-				int ColourValue = Count[Cell];
-				ColourValue / 100;
+			//Generate Colours based on the count
+			int Cell = (binsize * Rows) + Collums;
+			float Z = -0.5;
+			std::vector<GLfloat> RGB = HeatMapColours(Count[Cell]);
 
 
-				//First Triangle
-				//First Point    X	Y	Z
-				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
-				//Colours
-				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
-				//Second Point	X	Y	Z
-				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
-				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
-				//Third Point	X	Y	Z
-				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
-				GridData.push_back(ColourValue); GridData.push_back(0); GridData.push_back(0);
+			//First Triangle
+			//First Point    X	Y	Z
+			GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
+			GridData.push_back(RGB[0]); GridData.push_back(RGB[1]); GridData.push_back(RGB[2]);
+			//Second Point	X	Y	Z
+			GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
+			GridData.push_back(RGB[0]); GridData.push_back(RGB[1]); GridData.push_back(RGB[2]);
+			//Third Point	X	Y	Z
+			GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
+			GridData.push_back(RGB[0]); GridData.push_back(RGB[1]); GridData.push_back(RGB[2]);
 
-				//Second Triangle
-				//First Point    X	Y	Z
-				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
-				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
-				//Second Point	X	Y	Z
-				GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
-				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
-				//Third Point	X	Y	Z
-				GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
-				GridData.push_back(ColourValue); GridData.push_back(0.0); GridData.push_back(0.0);
-			}
+			//Second Triangle
+			//First Point    X	Y	Z
+			GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - (Rows * length)) / 1000);		GridData.push_back(Z);
+			GridData.push_back(RGB[0]); GridData.push_back(RGB[1]); GridData.push_back(RGB[2]);
+			//Second Point	X	Y	Z
+			GridData.push_back((rangeMin + (Collums * length)) / 1000);			GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
+			GridData.push_back(RGB[0]); GridData.push_back(RGB[1]); GridData.push_back(RGB[2]);
+			//Third Point	X	Y	Z
+			GridData.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	GridData.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	GridData.push_back(Z);
+			GridData.push_back(RGB[0]); GridData.push_back(RGB[1]); GridData.push_back(RGB[2]);
 		}
 	}
-
 	return GridData;
-
 }
 
 
@@ -528,7 +540,7 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 void loadAssets()
 {
 	initializeProgram(); //create GLSL Shaders, link into a GLSL program, and get IDs of attributes and variables
-
+	Colours = DivideRange(0, 15, 5);
 	cout << "Loaded Assets OK!\n";
 }
 // end::loadAssets[]
