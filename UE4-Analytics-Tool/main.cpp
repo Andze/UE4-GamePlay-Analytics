@@ -737,7 +737,8 @@ void handleInput()
 			std::string file(dropped_filedir);
 			//check of file extenstion
 			string exstension = getFileExt(dropped_filedir);
-			string pos = "Position";
+			string pos = "Player Position";
+			string battery = "Battery Position";
 			//if file type text
 			if (exstension == "txt")
 			{
@@ -748,10 +749,7 @@ void handleInput()
 				//if ((file.find(pos) != std::string::npos) && playerFiles == 0)
 				if (file.find(pos) != std::string::npos)
 				{
-					if (DroppedIndex >= filesHeld)
-					{
-						DroppedIndex = 0;
-					}
+					if (DroppedIndex >= filesHeld)	{DroppedIndex = 0;}
 
 					//trajectory
 					std::vector<GLfloat> RGB = TrajectoryColours(DroppedIndex);
@@ -769,7 +767,13 @@ void handleInput()
 					HeatMapAgg = 0;
 					Togglefile[DroppedIndex] = true;
 					Togglefile[DroppedIndex + 5] = true;
+
 					++DroppedIndex;				
+				}
+				if (file.find(battery) != std::string::npos)
+				{
+					//	Code for handling battery
+
 				}
 			}
 			else
