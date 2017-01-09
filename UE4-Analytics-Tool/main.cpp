@@ -91,7 +91,6 @@ std::vector<GLfloat> loadLog(const string filePath, int scale, std::vector<GLflo
 						//add data to array							//scale down for window size
 						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
 						count++;
-						
 					}
 				}
 				prev = pos + 1;
@@ -105,6 +104,7 @@ std::vector<GLfloat> loadLog(const string filePath, int scale, std::vector<GLflo
 			if (prev < line.length())
 			{
 				//push back last 6 bits of data
+				//LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
 				break;
 			}
 		}
@@ -464,16 +464,11 @@ std::vector<GLfloat> HeatMapColours(int Value)
 {
 	std::vector<GLfloat> RGBValue;
 
-	if (Value == Colours[0]) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
-
+	if (Value == Colours[0]) { RGBValue.push_back(0.0); RGBValue.push_back(0.0);RGBValue.push_back(0.0);}
 	if (Value > Colours[0] && Value < Colours[1]) { RGBValue.push_back(1.0); RGBValue.push_back(1.0); RGBValue.push_back(0.0); }
-	
 	if (Value >= Colours[1] && Value < Colours[2]) { RGBValue.push_back(1.0); RGBValue.push_back(0.5); RGBValue.push_back(0.0); }
-
 	if (Value >= Colours[2] && Value < Colours[3]) { RGBValue.push_back(0.5); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
-
 	if (Value >= Colours[3] && Value < Colours[4]) { RGBValue.push_back(1.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
-
 	if (Value >= Colours[4]) { RGBValue.push_back(1.0); RGBValue.push_back(1.0); RGBValue.push_back(1.0); }
 
 	return RGBValue;
@@ -618,7 +613,7 @@ std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count, std::vector<GLflo
 	//
 	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )	(rangeMin + ((collum + 1) * Length)) , rangeMax - ((Row + 1) * Length), Z )
 	//	 MAKE SURE TO SCALE ALL POSITION VALUES DOWN
-}
+} 
 
 
 std::vector<GLfloat> AggregateHeatMap(int count)
@@ -1064,7 +1059,6 @@ int main(int argc, char* args[])
 		render(); // this should render the world state according to VARIABLES -
 
 		postRender();
-
 	}
 
 	//cleanup and exit
