@@ -79,6 +79,7 @@ std::vector<GLfloat> loadLog(const string filePath, int scale, std::vector<GLflo
 		{ 
 			std::size_t prev = 0, pos;
 			//Parse out info not needed
+			int count = 0;
 			while ((pos = line.find_first_of("X=Y=Z=; ", prev)) != std::string::npos)
 			{
 				if (pos > prev)
@@ -89,19 +90,21 @@ std::vector<GLfloat> loadLog(const string filePath, int scale, std::vector<GLflo
 					{
 						//add data to array							//scale down for window size
 						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
-					/*	prev = pos + 1;
-						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
-						prev = pos + 1;
-						LogData.push_back((std::stof(line.substr(prev, pos - prev))) / scale);
-
-						LogData.push_back(RGB[0]); LogData.push_back(RGB[1]); LogData.push_back(RGB[2]);*/
+						count++;
+						
 					}
 				}
 				prev = pos + 1;
+				if (count == 3)
+				{
+					count = 0;
+					LogData.push_back(RGB[0]); LogData.push_back(RGB[1]); LogData.push_back(RGB[2]); 
+				}
 			}
 			//stop loop when reaching the end
 			if (prev < line.length())
 			{
+				//push back last 6 bits of data
 				break;
 			}
 		}
@@ -189,10 +192,10 @@ GLint modelMatrixLocation;
 GLint viewMatrixLocation;
 GLint projectionMatrixLocation;
 
-GLuint vertexDataBufferObject[5];
-GLuint vertexArrayObject[5];
-std::vector<GLfloat> PlayerPosition[5];
-std::vector<GLfloat> PlayerHeatmap[5];
+GLuint vertexDataBufferObject[10];
+GLuint vertexArrayObject[10];
+std::vector<GLfloat> PlayerPosition[10];
+//std::vector<GLfloat> PlayerHeatmap[5];
 std::vector<GLfloat> Colours;
 
 glm::mat4 viewMatrix;
@@ -552,7 +555,7 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 			//find Cell
 			int Cell = (binsize * Rows) + Collums;
 			//Set Z value
-			float Z = -0.5;
+			float Z = -0.1;
 			//Generate Colours based on the count
 			std::vector<GLfloat> RGB = HeatMapColours(Count[Cell]);
 
@@ -594,7 +597,7 @@ void loadAssets()
 // end::loadAssets[]
 
 bool W, A, S, D, Q, E, UP, DOWN, F, Eight, Two, Six, Four = false;
-bool Togglefile[5];
+bool Togglefile[10];
 string getFileExt(const string& s) {
 
 	size_t i = s.rfind('.', s.length());
@@ -655,16 +658,17 @@ void handleInput()
 
 					//trajectory
 					std::vector<GLfloat> RGB = TrajectoryColours(DroppedIndex);
-					//PlayerPosition[DroppedIndex] = loadLog(file,1000, RGB);
-					PlayerPosition[DroppedIndex] = CreateHeatmap(file);
-					//Heatmap
-					//PlayerHeatmap[DroppedIndex] = CreateHeatmap(file);
+					PlayerPosition[DroppedIndex] = loadLog(file,1000, RGB);
+					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(file);
+				
 					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
-					for (int i = 0; i < 5; i++)
+					initializeVertexBuffer(DroppedIndex + 5); //load data into a vertex buffer
+					for (int i = 0; i < 10; i++)
 					{
 						Togglefile[i] = false;
 					}
 					Togglefile[DroppedIndex] = true;
+					Togglefile[DroppedIndex + 5] = true;
 					++DroppedIndex;				
 				}
 			}
@@ -715,6 +719,12 @@ void handleInput()
 				case SDLK_3: Togglefile[2] = !Togglefile[2];	break;
 				case SDLK_4: Togglefile[3] = !Togglefile[3];	break;
 				case SDLK_5: Togglefile[4] = !Togglefile[4];	break;
+				case SDLK_6: Togglefile[5] = !Togglefile[5];	break;
+				case SDLK_7: Togglefile[6] = !Togglefile[6];	break;
+				case SDLK_8: Togglefile[7] = !Togglefile[7];	break;
+				case SDLK_9: Togglefile[8] = !Togglefile[8];	break;
+				case SDLK_0: Togglefile[9] = !Togglefile[9];	break;
+
 
 
 				case SDLK_KP_8:	Eight = true;	break;
@@ -805,15 +815,15 @@ void render()
 	//change the line width from 1 to...
 	glLineWidth(2);
 	//drawing for all data
-	/*for (int i = 0; i < 5; i++)
+	for (int i = 5; i < 10; i++)
 	{
 		if (Togglefile[i] == true)
 		{
 			glBindVertexArray(vertexArrayObject[i]);
 			glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-			glDrawArrays(GL_TRIANGLES, 0, PlayerHeatmap[i].size());
+			glDrawArrays(GL_TRIANGLES, 0, PlayerPosition[i].size());
 		}
-	}*/
+	}
 
 	for (int i = 0; i < 5; i++)
 	{
@@ -821,7 +831,7 @@ void render()
 		{
 			glBindVertexArray(vertexArrayObject[i]);
 			glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
-			glDrawArrays(GL_TRIANGLES, 0, PlayerPosition[i].size());
+			glDrawArrays(GL_LINES, 0, PlayerPosition[i].size());
 		}
 	}
 
