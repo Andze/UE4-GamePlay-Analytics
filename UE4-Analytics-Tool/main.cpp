@@ -607,6 +607,9 @@ std::vector<GLfloat> AggregateHeatMap(int count)
 	std::vector<GLfloat> Four = Count[3];
 	std::vector<GLfloat> Five = Count[4];
 
+
+	std::vector<GLfloat> Heatmap;
+
 	//if size == 0 dont use
 
 	for (unsigned int i = 0; i < (binsize * binsize); i++)
@@ -614,6 +617,7 @@ std::vector<GLfloat> AggregateHeatMap(int count)
 		GLfloat temp;
 		switch (count)
 		{
+			case 0: temp = 0; break;
 			case 1: temp = (One[i]);break;
 			case 2: temp = (One[i] + Two[i]); break;
 			case 3: temp = (One[i] + Two[i] + Three[i]); break;
@@ -623,7 +627,7 @@ std::vector<GLfloat> AggregateHeatMap(int count)
 		CombinedCount.push_back(temp);
 	}
 
-	std::vector<GLfloat> Heatmap;
+
 	for (unsigned int Rows = 0; Rows < binsize; Rows++)
 	{
 		for (unsigned int Collums = 0; Collums < binsize; Collums++)
@@ -812,10 +816,13 @@ void handleInput()
 					}
 					break;
 				case SDLK_EQUALS:
-					if (HeatMapAgg < filesHeld && HeatMapAgg <= DroppedIndex)
+					if (HeatMapAgg < filesHeld && HeatMapAgg < DroppedIndex)
 					{
 						HeatMapAgg++;
-
+						for (int i = 0; i < 5; i++)
+						{
+							Togglefile[i] = false;
+						}
 						PlayerPosition[10] = AggregateHeatMap(HeatMapAgg);
 						initializeVertexBuffer(10); //load data into a vertex buffer
 					}
