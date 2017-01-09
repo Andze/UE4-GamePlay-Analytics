@@ -192,10 +192,10 @@ GLint modelMatrixLocation;
 GLint viewMatrixLocation;
 GLint projectionMatrixLocation;
 
-GLuint vertexDataBufferObject[10];
-GLuint vertexArrayObject[10];
-std::vector<GLfloat> PlayerPosition[10];
-//std::vector<GLfloat> PlayerHeatmap[5];
+GLuint vertexDataBufferObject[11];
+GLuint vertexArrayObject[11];
+std::vector<GLfloat> PlayerPosition[11];
+std::vector<GLfloat> Count[5];
 std::vector<GLfloat> Colours;
 
 glm::mat4 viewMatrix;
@@ -439,6 +439,7 @@ int const binsize = 45;
 float rangeMax = 2400;
 float rangeMin = -2400;
 float length = 0;
+int DroppedIndex;
 // X= 2200 Y = 2000
 
 std::vector<GLfloat> DivideRange(int min, int max, int size)
@@ -492,14 +493,14 @@ std::vector<GLfloat> TrajectoryColours(int Value)
 }
 
 
-std::vector<GLfloat> CreateHeatmap(const string filePath)
+std::vector<GLfloat> CalculateCount(const string filePath)
 {
 	std::vector<GLfloat> PlayerData = loadHeatMapData(filePath);
-	std::vector<GLfloat> GridData;
+	std::vector<GLfloat> FinalCount;
 
 	std::vector<GLfloat> RangesY = DivideRange(2400, -2400, binsize);
 	std::vector<GLfloat> Ranges = DivideRange(rangeMin, rangeMax, binsize);
-	
+
 	float Count[binsize * binsize];
 	for (unsigned int i = 0; i < (binsize * binsize); i++)
 	{
@@ -536,17 +537,16 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 		//skip over Y and Z values and move onto next position data
 		j = j + 2;
 	}
+	for (unsigned int i = 0; i < (binsize * binsize); i++)
+	{
+		FinalCount.push_back(Count[i]);
+	}
+	return FinalCount;
+}
 
-	// Workings for creating a Plane
-	//				X						Y						Z
-	//	(rangeMin + (collum * Length)) , rangeMax - (Row * Length), Z )			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
-	//
-	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )
-
-	//																			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
-	//
-	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )	(rangeMin + ((collum + 1) * Length)) , rangeMax - ((Row + 1) * Length), Z )
-	//	 MAKE SURE TO SCALE ALL POSITION VALUES DOWN
+std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count)
+{
+	std::vector<GLfloat> GridData;
 
 	for (unsigned int Rows = 0; Rows < binsize; Rows++)
 	{
@@ -555,7 +555,7 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 			//find Cell
 			int Cell = (binsize * Rows) + Collums;
 			//Set Z value
-			float Z = -0.1;
+			float Z = -0.25;
 			//Generate Colours based on the count
 			std::vector<GLfloat> RGB = HeatMapColours(Count[Cell]);
 
@@ -583,9 +583,83 @@ std::vector<GLfloat> CreateHeatmap(const string filePath)
 		}
 	}
 	return GridData;
+
+	// Workings for creating a Plane
+	//				X						Y						Z
+	//	(rangeMin + (collum * Length)) , rangeMax - (Row * Length), Z )			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
+	//
+	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )
+
+	//																			(rangeMin + ((collum + 1) * Length)) , rangeMax - (Row * Length), Z )
+	//
+	//	(rangeMin + (collum * Length)) , rangeMax - ((Row + 1) * Length), Z )	(rangeMin + ((collum + 1) * Length)) , rangeMax - ((Row + 1) * Length), Z )
+	//	 MAKE SURE TO SCALE ALL POSITION VALUES DOWN
 }
 
 
+std::vector<GLfloat> AggregateHeatMap(int count)
+{
+	//add all the Count Arrays into one then use that the draw a heatmap
+	std::vector<GLfloat> CombinedCount;
+	std::vector<GLfloat> One = Count[0];
+	std::vector<GLfloat> Two = Count[1];
+	std::vector<GLfloat> Three = Count[2];
+	std::vector<GLfloat> Four = Count[3];
+	std::vector<GLfloat> Five = Count[4];
+
+	//if size == 0 dont use
+
+	for (unsigned int i = 0; i < (binsize * binsize); i++)
+	{
+		GLfloat temp;
+		switch (count)
+		{
+			case 1: temp = (One[i]);break;
+			case 2: temp = (One[i] + Two[i]); break;
+			case 3: temp = (One[i] + Two[i] + Three[i]); break;
+			case 4: temp = (One[i] + Two[i] + Three[i] + Four[i]); break;
+			case 5: temp = (One[i] + Two[i] + Three[i] + Four[i] + Five[i]); break;
+		}
+		CombinedCount.push_back(temp);
+	}
+
+	std::vector<GLfloat> Heatmap;
+	for (unsigned int Rows = 0; Rows < binsize; Rows++)
+	{
+		for (unsigned int Collums = 0; Collums < binsize; Collums++)
+		{
+			//find Cell
+			int Cell = (binsize * Rows) + Collums;
+			//Set Z value
+			float Z = -0.25;
+			//Generate Colours based on the count
+			std::vector<GLfloat> RGB = HeatMapColours(CombinedCount[Cell]);
+
+			//First Triangle
+			//First Point    X	Y	Z
+			Heatmap.push_back((rangeMin + (Collums * length)) / 1000);			Heatmap.push_back((rangeMax - (Rows * length)) / 1000);		Heatmap.push_back(Z);
+			Heatmap.push_back(RGB[0]); Heatmap.push_back(RGB[1]); Heatmap.push_back(RGB[2]);
+			//Second Point	X	Y	Z
+			Heatmap.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	Heatmap.push_back((rangeMax - (Rows * length)) / 1000);		Heatmap.push_back(Z);
+			Heatmap.push_back(RGB[0]); Heatmap.push_back(RGB[1]); Heatmap.push_back(RGB[2]);
+			//Third Point	X	Y	Z
+			Heatmap.push_back((rangeMin + (Collums * length)) / 1000);			Heatmap.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	Heatmap.push_back(Z);
+			Heatmap.push_back(RGB[0]); Heatmap.push_back(RGB[1]); Heatmap.push_back(RGB[2]);
+
+			//Second Triangle
+			//First Point    X	Y	Z
+			Heatmap.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	Heatmap.push_back((rangeMax - (Rows * length)) / 1000);		Heatmap.push_back(Z);
+			Heatmap.push_back(RGB[0]); Heatmap.push_back(RGB[1]); Heatmap.push_back(RGB[2]);
+			//Second Point	X	Y	Z
+			Heatmap.push_back((rangeMin + (Collums * length)) / 1000);			Heatmap.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	Heatmap.push_back(Z);
+			Heatmap.push_back(RGB[0]); Heatmap.push_back(RGB[1]); Heatmap.push_back(RGB[2]);
+			//Third Point	X	Y	Z
+			Heatmap.push_back((rangeMin + ((Collums + 1) * length)) / 1000);	Heatmap.push_back((rangeMax - ((Rows + 1) * length)) / 1000);	Heatmap.push_back(Z);
+			Heatmap.push_back(RGB[0]); Heatmap.push_back(RGB[1]); Heatmap.push_back(RGB[2]);
+		}
+	}
+	return Heatmap;
+}
 
 // tag::loadAssets[]
 void loadAssets()
@@ -606,7 +680,7 @@ string getFileExt(const string& s) {
 	}
 	return("");
 }
-int DroppedIndex;
+int HeatMapAgg = 0;
 int const filesHeld = 5;
 // tag::handleInput[]
 void handleInput()
@@ -659,7 +733,8 @@ void handleInput()
 					//trajectory
 					std::vector<GLfloat> RGB = TrajectoryColours(DroppedIndex);
 					PlayerPosition[DroppedIndex] = loadLog(file,1000, RGB);
-					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(file);
+					Count[DroppedIndex] = CalculateCount(file);
+					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(Count[DroppedIndex]);
 				
 					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
 					initializeVertexBuffer(DroppedIndex + 5); //load data into a vertex buffer
@@ -667,6 +742,7 @@ void handleInput()
 					{
 						Togglefile[i] = false;
 					}
+					HeatMapAgg = 0;
 					Togglefile[DroppedIndex] = true;
 					Togglefile[DroppedIndex + 5] = true;
 					++DroppedIndex;				
@@ -680,7 +756,6 @@ void handleInput()
 			SDL_free(dropped_filedir);    // Free dropped_filedir memory
 			break;
 		}
-
 
 			//keydown handling - we should to the opposite on key-up for direction controls (generally)
 		case SDL_KEYDOWN:
@@ -714,18 +789,38 @@ void handleInput()
 					//Increase Z axis
 				case SDLK_s:	S = true;	break;
 
+				//Trajectorys
 				case SDLK_1: Togglefile[0] = !Togglefile[0];	break;
 				case SDLK_2: Togglefile[1] = !Togglefile[1];	break;
 				case SDLK_3: Togglefile[2] = !Togglefile[2];	break;
 				case SDLK_4: Togglefile[3] = !Togglefile[3];	break;
 				case SDLK_5: Togglefile[4] = !Togglefile[4];	break;
+				//Heatmaps
 				case SDLK_6: Togglefile[5] = !Togglefile[5];	break;
 				case SDLK_7: Togglefile[6] = !Togglefile[6];	break;
 				case SDLK_8: Togglefile[7] = !Togglefile[7];	break;
 				case SDLK_9: Togglefile[8] = !Togglefile[8];	break;
 				case SDLK_0: Togglefile[9] = !Togglefile[9];	break;
 
+				case SDLK_MINUS: 
+					if (HeatMapAgg > 0)
+					{
+						HeatMapAgg--;
 
+						PlayerPosition[10] = AggregateHeatMap(HeatMapAgg);
+						initializeVertexBuffer(10); //load data into a vertex buffer
+					}
+					break;
+				case SDLK_EQUALS:
+					if (HeatMapAgg < filesHeld && HeatMapAgg <= DroppedIndex)
+					{
+						HeatMapAgg++;
+
+						PlayerPosition[10] = AggregateHeatMap(HeatMapAgg);
+						initializeVertexBuffer(10); //load data into a vertex buffer
+					}
+					
+					break;
 
 				case SDLK_KP_8:	Eight = true;	break;
 				case SDLK_KP_6:	Six = true;		break;
@@ -815,6 +910,11 @@ void render()
 	//change the line width from 1 to...
 	glLineWidth(2);
 	//drawing for all data
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_CONSTANT_ALPHA);
+	//drawing induvidial heatmaps
 	for (int i = 5; i < 10; i++)
 	{
 		if (Togglefile[i] == true)
@@ -824,6 +924,17 @@ void render()
 			glDrawArrays(GL_TRIANGLES, 0, PlayerPosition[i].size());
 		}
 	}
+
+	//Draw Aggrigated heatmap here
+	if (HeatMapAgg != 0)
+	{
+		glBindVertexArray(vertexArrayObject[10]);
+		glUniformMatrix4fv(modelMatrixLocation, 1, false, glm::value_ptr(modelMatrix));
+		glDrawArrays(GL_TRIANGLES, 0, PlayerPosition[10].size());
+	}
+
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 
 	for (int i = 0; i < 5; i++)
 	{
