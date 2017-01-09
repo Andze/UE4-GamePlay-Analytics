@@ -198,6 +198,7 @@ std::vector<GLfloat> PlayerPosition[11];
 std::vector<GLfloat> Count[5];
 std::vector<GLfloat> Colours;
 
+
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
 glm::mat4 modelMatrix;
@@ -478,17 +479,40 @@ std::vector<GLfloat> HeatMapColours(int Value)
 	return RGBValue;
 }
 
-std::vector<GLfloat> TrajectoryColours(int Value)
+std::vector<GLfloat> HeatMapSingle(int Value)
+{
+	std::vector<GLfloat> RGBValue;
+	if (Value == 0) { RGBValue.push_back(1.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+	if (Value == 1) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(1.0); }
+	if (Value == 2) { RGBValue.push_back(0.0); RGBValue.push_back(1.0); RGBValue.push_back(0.0); }
+	if (Value == 3) { RGBValue.push_back(1.0); RGBValue.push_back(0.0); RGBValue.push_back(1.0); }
+	if (Value == 4) { RGBValue.push_back(1.0); RGBValue.push_back(1.0); RGBValue.push_back(0.0); }
+	return RGBValue;
+}
+
+std::vector<GLfloat> ColourCalculation(int Value, std::vector<GLfloat> Base)
 {
 	std::vector<GLfloat> RGBValue;
 
-	if (Value == 0) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
-	if (Value == 1) { RGBValue.push_back(1.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
-	if (Value == 2) { RGBValue.push_back(0.0); RGBValue.push_back(2.0); RGBValue.push_back(0.0); }
-	if (Value == 3) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(3.0); }
-	if (Value == 4) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
-	if (Value == 5) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(0.0); }
+	float R = Base[0], G = Base[1], B = Base[2];
 
+	R = (R * Value) / 100 * 7.5;
+	G = (G * Value) / 100 * 7.5;
+	B = (B * Value) / 100 * 7.5;
+
+	RGBValue.push_back(R); RGBValue.push_back(G); RGBValue.push_back(B);
+
+	return RGBValue;
+}
+
+std::vector<GLfloat> TrajectoryColours(int Value)
+{
+	std::vector<GLfloat> RGBValue;
+	if (Value == 0) { RGBValue.push_back(0.0); RGBValue.push_back(0.0); RGBValue.push_back(1.0); }
+	if (Value == 1) { RGBValue.push_back(1.0); RGBValue.push_back(0.5); RGBValue.push_back(0.0); }
+	if (Value == 2) { RGBValue.push_back(0.75); RGBValue.push_back(0.0); RGBValue.push_back(1.0); }
+	if (Value == 3) { RGBValue.push_back(0.0); RGBValue.push_back(1.0); RGBValue.push_back(0.0); }
+	if (Value == 4) { RGBValue.push_back(1.0); RGBValue.push_back(0.0); RGBValue.push_back(0.75); }
 	return RGBValue;
 }
 
@@ -544,7 +568,7 @@ std::vector<GLfloat> CalculateCount(const string filePath)
 	return FinalCount;
 }
 
-std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count)
+std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count, std::vector<GLfloat> BaseColour)
 {
 	std::vector<GLfloat> GridData;
 
@@ -557,7 +581,7 @@ std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count)
 			//Set Z value
 			float Z = -0.25;
 			//Generate Colours based on the count
-			std::vector<GLfloat> RGB = HeatMapColours(Count[Cell]);
+			std::vector<GLfloat> RGB = ColourCalculation(Count[Cell],BaseColour);
 
 			//First Triangle
 			//First Point    X	Y	Z
@@ -635,7 +659,7 @@ std::vector<GLfloat> AggregateHeatMap(int count)
 			//find Cell
 			int Cell = (binsize * Rows) + Collums;
 			//Set Z value
-			float Z = -0.25;
+			float Z = -0.2;
 			//Generate Colours based on the count
 			std::vector<GLfloat> RGB = HeatMapColours(CombinedCount[Cell]);
 
@@ -738,7 +762,8 @@ void handleInput()
 					std::vector<GLfloat> RGB = TrajectoryColours(DroppedIndex);
 					PlayerPosition[DroppedIndex] = loadLog(file,1000, RGB);
 					Count[DroppedIndex] = CalculateCount(file);
-					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(Count[DroppedIndex]);
+					RGB = HeatMapSingle(DroppedIndex);
+					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(Count[DroppedIndex], RGB);
 				
 					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
 					initializeVertexBuffer(DroppedIndex + 5); //load data into a vertex buffer
@@ -800,11 +825,21 @@ void handleInput()
 				case SDLK_4: Togglefile[3] = !Togglefile[3];	break;
 				case SDLK_5: Togglefile[4] = !Togglefile[4];	break;
 				//Heatmaps
-				case SDLK_6: Togglefile[5] = !Togglefile[5];	break;
-				case SDLK_7: Togglefile[6] = !Togglefile[6];	break;
-				case SDLK_8: Togglefile[7] = !Togglefile[7];	break;
-				case SDLK_9: Togglefile[8] = !Togglefile[8];	break;
-				case SDLK_0: Togglefile[9] = !Togglefile[9];	break;
+				case SDLK_6: Togglefile[5] = !Togglefile[5];
+					if (Togglefile[5] == true){	Togglefile[6] = false; Togglefile[7] = false; Togglefile[8] = false; Togglefile[9] = false;	}		
+					break;		
+				case SDLK_7: Togglefile[6] = !Togglefile[6];	
+					if (Togglefile[6] == true) { Togglefile[5] = false; Togglefile[7] = false; Togglefile[8] = false; Togglefile[9] = false; }
+					break;
+				case SDLK_8: Togglefile[7] = !Togglefile[7];	
+					if (Togglefile[7] == true) { Togglefile[6] = false; Togglefile[5] = false; Togglefile[8] = false; Togglefile[9] = false; }
+					break;
+				case SDLK_9: Togglefile[8] = !Togglefile[8];	
+					if (Togglefile[8] == true) { Togglefile[6] = false; Togglefile[7] = false; Togglefile[5] = false; Togglefile[9] = false; }
+					break;
+				case SDLK_0: Togglefile[9] = !Togglefile[9];	
+					if (Togglefile[9] == true) { Togglefile[6] = false; Togglefile[7] = false; Togglefile[8] = false; Togglefile[5] = false; }
+					break;
 
 				case SDLK_MINUS: 
 					if (HeatMapAgg > 0)
