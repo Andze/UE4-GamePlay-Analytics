@@ -139,12 +139,32 @@ std::vector<GLfloat> LoadBatteryTrajectory(std::vector<GLfloat> Trajectory)
 
 			count = 0;
 		}
-
 		BatteryTrajectory.push_back(Trajectory[i]);
 		count++;		
 	}
+	int i = Trajectory.size();
+	BatteryTrajectory.push_back(Trajectory[i - 6]);
+	BatteryTrajectory.push_back(Trajectory[i - 5]);
+	BatteryTrajectory.push_back(0);
+	BatteryTrajectory.push_back(Trajectory[i - 3]);
+	BatteryTrajectory.push_back(Trajectory[i - 2]);
+	BatteryTrajectory.push_back(Trajectory[i - 1]);
 	return BatteryTrajectory;
 }
+
+//Function to return all the data in a log file in the form of a float array
+std::vector<GLfloat> FinishTrajectory(std::vector<GLfloat> Trajectory)
+{
+	int i = Trajectory.size();
+	Trajectory.push_back(Trajectory[i - 6]);
+	Trajectory.push_back(Trajectory[i - 5]);
+	Trajectory.push_back(0);
+	Trajectory.push_back(Trajectory[i - 3]);
+	Trajectory.push_back(Trajectory[i - 2]);
+	Trajectory.push_back(Trajectory[i - 1]);
+	return Trajectory;
+}
+
 
 //Function to return all the data in a log file in the form of a float array
 std::vector<GLfloat> loadHeatMapData(const string filePath)
@@ -778,7 +798,8 @@ void handleInput()
 
 					//trajectory
 					std::vector<GLfloat> RGB = TrajectoryColours(DroppedIndex);
-					PlayerPosition[DroppedIndex] = loadLog(file,1000, RGB);
+					std::vector<GLfloat> Trajectory = loadLog(file, 1000, RGB);
+					PlayerPosition[DroppedIndex] = FinishTrajectory(Trajectory);
 					Count[DroppedIndex] = CalculateCount(file);
 					RGB = HeatMapSingle(DroppedIndex);
 					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(Count[DroppedIndex], RGB, 7);
