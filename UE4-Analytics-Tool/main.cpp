@@ -122,6 +122,31 @@ std::vector<GLfloat> loadLog(const string filePath, int scale, std::vector<GLflo
 }
 
 //Function to return all the data in a log file in the form of a float array
+std::vector<GLfloat> LoadBatteryTrajectory(std::vector<GLfloat> Trajectory)
+{
+	std::vector<GLfloat> BatteryTrajectory;
+	int count = 0;
+	for (unsigned int i = 0; i < Trajectory.size(); i++)
+	{
+		if (count == 6)
+		{
+			BatteryTrajectory.push_back(Trajectory[i - 6]);
+			BatteryTrajectory.push_back(Trajectory[i - 5]);
+			BatteryTrajectory.push_back(0);
+			BatteryTrajectory.push_back(Trajectory[i - 3]);
+			BatteryTrajectory.push_back(Trajectory[i - 2]);
+			BatteryTrajectory.push_back(Trajectory[i - 1]);
+
+			count = 0;
+		}
+
+		BatteryTrajectory.push_back(Trajectory[i]);
+		count++;		
+	}
+	return BatteryTrajectory;
+}
+
+//Function to return all the data in a log file in the form of a float array
 std::vector<GLfloat> loadHeatMapData(const string filePath)
 {
 	//Create Array for Log
@@ -485,15 +510,15 @@ std::vector<GLfloat> HeatMapSingle(int Value)
 	return RGBValue;
 }
 
-std::vector<GLfloat> ColourCalculation(int Value, std::vector<GLfloat> Base)
+std::vector<GLfloat> ColourCalculation(int Value, std::vector<GLfloat> Base, int multiplier)
 {
 	std::vector<GLfloat> RGBValue;
 
 	float R = Base[0], G = Base[1], B = Base[2];
 
-	R = (R * Value) / 100 * 7.5;
-	G = (G * Value) / 100 * 7.5;
-	B = (B * Value) / 100 * 7.5;
+	R = (R * Value) / 100 * multiplier;
+	G = (G * Value) / 100 * multiplier;
+	B = (B * Value) / 100 * multiplier;
 
 	RGBValue.push_back(R); RGBValue.push_back(G); RGBValue.push_back(B);
 
@@ -563,7 +588,7 @@ std::vector<GLfloat> CalculateCount(const string filePath)
 	return FinalCount;
 }
 
-std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count, std::vector<GLfloat> BaseColour)
+std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count, std::vector<GLfloat> BaseColour, int multiplier)
 {
 	std::vector<GLfloat> GridData;
 
@@ -576,7 +601,7 @@ std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count, std::vector<GLflo
 			//Set Z value
 			float Z = -0.25;
 			//Generate Colours based on the count
-			std::vector<GLfloat> RGB = ColourCalculation(Count[Cell],BaseColour);
+			std::vector<GLfloat> RGB = ColourCalculation(Count[Cell],BaseColour,multiplier);
 
 			//First Triangle
 			//First Point    X	Y	Z
@@ -688,7 +713,7 @@ std::vector<GLfloat> AggregateHeatMap(int count)
 void loadAssets()
 {
 	initializeProgram(); //create GLSL Shaders, link into a GLSL program, and get IDs of attributes and variables
-	Colours = DivideRange(0, 15, 5);
+	Colours = DivideRange(0, 30, 5);
 	cout << "Loaded Assets OK!\n";
 }
 // end::loadAssets[]
@@ -756,7 +781,7 @@ void handleInput()
 					PlayerPosition[DroppedIndex] = loadLog(file,1000, RGB);
 					Count[DroppedIndex] = CalculateCount(file);
 					RGB = HeatMapSingle(DroppedIndex);
-					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(Count[DroppedIndex], RGB);
+					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(Count[DroppedIndex], RGB, 7);
 				
 					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
 					initializeVertexBuffer(DroppedIndex + 5); //load data into a vertex buffer
@@ -773,7 +798,26 @@ void handleInput()
 				if (file.find(battery) != std::string::npos)
 				{
 					//	Code for handling battery
+					if (DroppedIndex >= filesHeld) { DroppedIndex = 0; }
 
+					//trajectory
+					std::vector<GLfloat> RGB = TrajectoryColours(DroppedIndex);
+					std::vector<GLfloat> Trajectory = loadLog(file, 1000, RGB);
+					PlayerPosition[DroppedIndex] = LoadBatteryTrajectory(Trajectory);;
+					Count[DroppedIndex] = CalculateCount(file);
+					RGB = HeatMapSingle(DroppedIndex);
+					PlayerPosition[DroppedIndex + 5] = CreateHeatmap(Count[DroppedIndex], RGB, 50);
+
+					initializeVertexBuffer(DroppedIndex); //load data into a vertex buffer
+					initializeVertexBuffer(DroppedIndex + 5); //load data into a vertex buffer
+
+					for (int i = 0; i < 10; i++){Togglefile[i] = false;	}
+
+					HeatMapAgg = 0;
+					Togglefile[DroppedIndex] = true;
+					Togglefile[DroppedIndex + 5] = true;
+
+					++DroppedIndex;
 				}
 			}
 			else
