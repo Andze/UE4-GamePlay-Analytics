@@ -130,12 +130,10 @@ std::vector<GLfloat> LoadBatteryTrajectory(std::vector<GLfloat> Trajectory)
 	{
 		if (count == 6)
 		{
-			BatteryTrajectory.push_back(Trajectory[i - 6]);
-			BatteryTrajectory.push_back(Trajectory[i - 5]);
-			BatteryTrajectory.push_back(0);
-			BatteryTrajectory.push_back(Trajectory[i - 3]);
-			BatteryTrajectory.push_back(Trajectory[i - 2]);
-			BatteryTrajectory.push_back(Trajectory[i - 1]);
+			//position
+			BatteryTrajectory.push_back(Trajectory[i - 6]);	BatteryTrajectory.push_back(Trajectory[i - 5]);	BatteryTrajectory.push_back(0);
+			//RGB
+			BatteryTrajectory.push_back(Trajectory[i - 3]);	BatteryTrajectory.push_back(Trajectory[i - 2]);	BatteryTrajectory.push_back(Trajectory[i - 1]);
 
 			count = 0;
 		}
@@ -143,12 +141,10 @@ std::vector<GLfloat> LoadBatteryTrajectory(std::vector<GLfloat> Trajectory)
 		count++;		
 	}
 	int i = Trajectory.size();
-	BatteryTrajectory.push_back(Trajectory[i - 6]);
-	BatteryTrajectory.push_back(Trajectory[i - 5]);
-	BatteryTrajectory.push_back(0);
-	BatteryTrajectory.push_back(Trajectory[i - 3]);
-	BatteryTrajectory.push_back(Trajectory[i - 2]);
-	BatteryTrajectory.push_back(Trajectory[i - 1]);
+
+	BatteryTrajectory.push_back(Trajectory[i - 6]);	BatteryTrajectory.push_back(Trajectory[i - 5]);	BatteryTrajectory.push_back(0);
+	BatteryTrajectory.push_back(Trajectory[i - 3]);	BatteryTrajectory.push_back(Trajectory[i - 2]);	BatteryTrajectory.push_back(Trajectory[i - 1]);
+
 	return BatteryTrajectory;
 }
 
