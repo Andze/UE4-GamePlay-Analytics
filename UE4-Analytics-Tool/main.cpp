@@ -155,6 +155,8 @@ std::vector<GLfloat> LoadBatteryTrajectory(std::vector<GLfloat> Trajectory)
 //Function to return all the data in a log file in the form of a float array
 std::vector<GLfloat> FinishTrajectory(std::vector<GLfloat> Trajectory)
 {
+	if ((Trajectory.size() / 6) % 2 != 0)
+	{
 	int i = Trajectory.size();
 	Trajectory.push_back(Trajectory[i - 6]);
 	Trajectory.push_back(Trajectory[i - 5]);
@@ -162,8 +164,9 @@ std::vector<GLfloat> FinishTrajectory(std::vector<GLfloat> Trajectory)
 	Trajectory.push_back(Trajectory[i - 3]);
 	Trajectory.push_back(Trajectory[i - 2]);
 	Trajectory.push_back(Trajectory[i - 1]);
+	}
 	return Trajectory;
-}
+}//1913
 
 
 //Function to return all the data in a log file in the form of a float array
@@ -607,6 +610,8 @@ std::vector<GLfloat> CalculateCount(const string filePath)
 	}
 	return FinalCount;
 }
+
+
 
 std::vector<GLfloat> CreateHeatmap(std::vector<GLfloat> Count, std::vector<GLfloat> BaseColour, int multiplier)
 {
