@@ -564,11 +564,7 @@ std::vector<GLfloat> CalculateCount(const string filePath)
 	std::vector<GLfloat> RangesY = DivideRange(2400, -2400, binsize);
 	std::vector<GLfloat> Ranges = DivideRange(rangeMin, rangeMax, binsize);
 
-	float Count[binsize * binsize];
-	for (unsigned int i = 0; i < (binsize * binsize); i++)
-	{
-		Count[i] = 0;
-	}
+	float Count[binsize * binsize] = { 0 };
 
 	//read through data and increase count if found in correct bin
 	for (unsigned int j = 0; j < PlayerData.size(); j++)
